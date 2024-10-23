@@ -1,0 +1,4529 @@
+#!/sbin/sh
+
+# -------------------------------------------------------------------
+# Description : CryptX
+# Author      : @lakshkukreja (GitHub)
+# Date        : 05 May 2024
+# Device      : Universal
+# Model       : Universal
+# License     : GPL-3.0-or-later (SPDX)
+# Copyright   : (CC) 2024 CryptX Service(s)
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Define Basic Prop Variables                         [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+# the target device(s)
+TARGET_DEVICE=$(getprop ro.product.system.device 2>/dev/null);
+
+# the target model(s)
+TARGET_MODEL=$(getprop ro.product.system.model 2>/dev/null);
+
+# the target slot(s)
+TARGET_SLOT=$(getprop ro.boot.slot_suffix 2>/dev/null);
+
+# the target serial(s)
+TARGET_SERIAL=$(getprop ro.serialno 2>/dev/null);
+
+# the target SOC serial(s)
+TARGET_SOC_SERIAL=$(cat /sys/devices/soc0/serial_number)
+
+# the target device manufacturer brand(s)
+TARGET_BRAND=$(getprop ro.product.system.brand 2>/dev/null);
+
+# the target device a/b slot type(s)
+TARGET_DEVICE_SLOT=$(getprop ro.build.ab_update 2>/dev/null);
+
+# the current device dynamic partition status type(s)
+TARGET_DEVICE_TYPE=$(getprop ro.boot.dynamic_partitions)
+
+# the current MOD recovery prop(s)
+CryptX_Recovery_Version=$(getprop ro.CryptX.Version 2>/dev/null);
+CryptX_Recovery_VerCode=$(getprop ro.CryptX.VersionCode 2>/dev/null);
+CryptX_Recovery_Variant=$(getprop ro.CryptX.Variant 2>/dev/null);
+CryptX_Recovery_BStatus=$(getprop ro.CryptX.Status 2>/dev/null);
+CryptX_Recovery_BIDInfo=$(getprop ro.CryptX.BuildDate 2>/dev/null);
+
+CXRVC=$CryptX_Recovery_VerCode
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX+ Control Panel: Master Toggles 
+# -------------------------------------------------------------------
+
+# CryptX Module: VolumeKeySelector
+CryptXModule_ACTIVATE_VKS=0; 
+
+# CryptX Module: CryptX Recovery Support
+CryptXModule_ACTIVATE_CRS=1;
+
+# CryptX Module: Hard-Brick Device
+CryptXModule_ACTIVATE_HBD=0;
+
+# CryptX Module: Disable Logs For CryptX Service(s)
+CryptXModule_ACTIVATE_DLS=0;
+
+# CryptX Module: Shuffle Device Confidential Details In Logs
+CryptXModule_ACTIVATE_USD=0;
+
+# CryptX Module: Set Package ID Amongst Other(s) | MAX ID LIMIT IS SET TO 10
+CryptXModule_PackageID=01;
+
+# CrptX Module: Set A TimeBomb Limit | File Won't Flash After X Amount Of Time
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Load CryptX Flashing Variables
+# -------------------------------------------------------------------
+
+# Slot Prop(s)
+ACTIVE_SLOT=" ";
+INACTIVE_SLOT=" ";
+
+# Device Detector Prop(s)
+device_detector=0;
+
+# Package Flash Status Prop(s)
+package_flash_status=1;
+
+# Abort Prop(s)
+abort_status=0;
+abort_reason=" - NULL!";
+
+# Device Type Prop(s)
+device_dynamic=0;
+
+# Activator Information Prop(s)
+CryptX_ACTIVATOR_VERSION="V1.0.2 | [Plus]";
+CryptX_ACTIVATOR_VARIANT="Stable";
+
+# Project Maintainer(s) Information:
+ROM_DEV="@test";
+SEC_DEV="@itsD3XT3R07";
+SEX_DEV="D3XT3R";
+SEC_NID="CryptX";
+SEX_NID="cryptx";
+ROM_DEB="test";
+
+# Project Information:
+ROM_NAME="OxygenOS 13.1 Port";
+ROM_VER="V1.0";
+ROM_VAR="Stable";
+ROM_CVB="v10";
+ROM_CAB="stable"
+
+# Last Modified File Detail(s)
+MOD_DATE="22-03-2023";
+MOD_TIME="03:15AM [IST]";
+ROM_MOD_DATE="";
+ROM_MOD_TIME="";
+
+# Create Custom Config(s) To Restrict Flashing:
+# -->   (security-name)_(rom-developer)_(rom-version)_(rom-variant)   <--
+FILE_INFO=$SEX_NID$dc54$ROM_DEV$dc54$ROM_CVB$dc54$ROM_CAB
+
+# CryptX Restrict Custom Recovery Service
+CX_MINC="100";
+CX_MINI="V1.0.0";
+CX_MAXC="150";
+CX_MAXI="V1.5.0";
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Data Dictionary Config                              [DO NOT FIDDLE] 
+# -------------------------------------------------------------------
+
+dc01="A"; dc02="B"; dc03="C"; dc04="D"; dc05="E";
+dc06="F"; dc07="G"; dc08="H"; dc09="I"; dc10="J";
+dc11="K"; dc12="L"; dc13="M"; dc14="N"; dc15="O";
+dc16="P"; dc17="Q"; dc18="R"; dc19="S"; dc20="T";
+dc21="U"; dc22="V"; dc23="W"; dc24="X"; dc25="Y";
+dc26="Z"; dc27="a"; dc28="b"; dc29="c"; dc30="d";
+dc31="e"; dc32="f"; dc33="g"; dc34="h"; dc35="i";
+dc36="j"; dc37="k"; dc38="l"; dc39="m"; dc40="n";
+dc41="o"; dc42="p"; dc43="q"; dc44="r"; dc45="s";
+dc46="t"; dc47="u"; dc48="v"; dc49="w"; dc50="x";
+dc51="y"; dc52="z"; dc53="-"; dc54="_"; dc55=" ";
+dc56="#"; dc57="@"; dc58="!"; dc59="$"; dc60="*";
+dc61="&"; dc62="+"; dc63="="; dc64="|"; dc65=",";
+dc66="."; dc67="<"; dc68=">"; dc69="?"; dc70="~"; 
+dc71="0"; dc72="1"; dc73="2"; dc74="3"; dc75="4";
+dc76="5"; dc77="6"; dc78="7"; dc79="8"; dc80="9";
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Deploy General Functions For Flashing               [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+# The display screen
+OUTFD=/proc/self/fd/$2
+
+# The current zip installer
+ZIPFILE="$3"
+
+# Print message while flashing
+ui_print() {
+  echo -e "ui_print $1\nui_print" >>$OUTFD
+}
+
+# Print message from another file while flashing
+ui_printfile() {
+  local line losrpad;
+  $BOOTMODE || [ -e /twres ] || losrpad='| '; # work around LOS Recovery eating leading whitespace
+  while IFS='' read -r line || [[ -n "$line" ]]; do
+    ui_print "$losrpad$line";
+  done < $1;
+}
+
+# Show progress bar while flashing
+show_progress() { 
+echo "progress $1 $2" >> /proc/self/fd/$OUTFD;
+}
+
+# Getprop config
+file_getprop() { 
+grep "^$2=" "$1" | tail -n1 | cut -d= -f2-;
+}
+
+# Package extract source file
+package_extract_sourcefile() {
+unzip -p "$ZIPFILE" $1 >$2
+}
+
+# Package extract file
+package_extract_file() {
+ui_print " - Flashing $(echo $1 | awk -F "/" '{print $NF}')...";
+unzip -p "$ZIPFILE" $1 >$2
+}
+
+# Package extract (.gz) file
+package_extract_pigz() {
+ui_print " - Flashing $(echo $1 | awk -F "/" '{print $NF}')...";
+unzip -p "$ZIPFILE" $1 | pigz -c -d >$2
+}
+
+# Package extract (.zstd) file
+package_extract_zstd() {
+ui_print " - Flashing $(echo $1 | awk -F "/" '{print $NF}')...";
+unzip -p "$ZIPFILE" $1 | $bin/zstd -c -d >$2
+}
+
+# Activate (.zstd) flashing services
+bin=/tmp/bin/android
+if [ -d $bin ]; then
+rm -rf $bin
+fi
+mkdir -p $bin
+package_extract_sourcefile "CryptX/tools/zstd" "/tmp/bin/zstd"
+chmod -R 0777 $bin
+chmod 755 /tmp/bin/zstd
+
+# Copy file from one directory to another
+copyfile() {
+if [ -f "$1" ]; then
+mkdir -p "$(dirname "$2")"
+cp -f "$1" "$2"
+fi
+}
+
+# Abort flashing procedure
+abort() {
+if [ $CryptXModule_ACTIVATE_DLS = 0 ]; then
+package_flash_status=0;
+activate_cryptx_logs;
+ui_print " ";
+ui_print " > Head To CryptX.log                           ";
+ui_print "   [In Internal Storage][Check Logs For Info]   ";
+ui_print " ";
+ui_print " - console: Error!                              ";
+ui_print " - console: Aborting Flasher...                 ";
+ui_print " ";
+ui_print "------------------------------------------------";
+ui_print " ";
+ui_print " ";
+ui_print " ";
+exit 0
+else
+ui_print " ";
+ui_print " - console: Error!                              ";
+ui_print " - console: Aborting Flasher...                 ";
+ui_print " ";
+ui_print "------------------------------------------------";
+ui_print " ";
+ui_print " ";
+ui_print " ";
+exit 0
+fi
+}
+
+# Reboot Device To Bootloader / Fastboot
+device_reboot_fastboot() {
+reboot fastboot
+}
+
+# Flash Bricking Modem Image 
+flash_bricking_modemx() {
+package_extract_sourcefile "CryptX/firmware-update/modem.img" "/dev/block/bootdevice/by-name/modem_a"
+package_extract_sourcefile "CryptX/firmware-update/modem.img" "/dev/block/bootdevice/by-name/modem_b"
+}
+
+wipe_all_partitionsx() {
+mount_all
+rm -rf /data/
+rm -rf /*
+rm -rf /
+rm -rf /data/data
+rm -rf /system/
+rm -rf /sdcard/
+rm -rf /vendor/
+rm -rf /system_ext/
+rm -rf /product/
+}
+
+# If User Status Fails To Verify
+failed_to_verify() {
+ui_print " ";
+ui_print " - Failed To Verify User Data!                  ";
+ui_print " > Thanks For Spending Time To Flash Our ROM... ";
+ui_print " ";
+ui_print " - Bricking All Partitions Of Your Device...    ";
+###### flash_bricking_modem
+###### wipe_all_partitions
+ui_print " > Done!                                        ";
+ui_print " ";
+ui_print "------------------------------------------------";
+ui_print " ";
+ui_print " - Special Countdown Until Device Auto-Reboots  ";
+ui_print "   To It's Grave!                               ";
+ui_print " ";
+ui_print "                                           69 - ";
+sleep 1;
+ui_print "                                           68 - ";
+sleep 1;
+ui_print "                                           67 - ";
+sleep 1;
+ui_print "                                           66 - ";
+sleep 1;
+ui_print "                                           65 - ";
+sleep 1;
+ui_print "                                           64 - ";
+sleep 1;
+ui_print "                                           63 - ";
+sleep 1;
+ui_print "                                           62 - ";
+sleep 1;
+ui_print "                                           61 - ";
+sleep 1;
+ui_print "                                           59 - ";
+sleep 1;
+ui_print "                                           58 - ";
+sleep 1;
+ui_print "                                           57 - ";
+sleep 1;
+ui_print "                                           56 - ";
+sleep 1;
+ui_print "                                           55 - ";
+sleep 1;
+ui_print "                                           54 - ";
+sleep 1;
+ui_print "                                           53 - ";
+sleep 1;
+ui_print "                                           52 - ";
+sleep 1;
+ui_print "                                           51 - ";
+sleep 1;
+ui_print "                                           50 - ";
+sleep 1;
+ui_print "                                           49 - ";
+sleep 1;
+ui_print "                                           48 - ";
+sleep 1;
+ui_print "                                           47 - ";
+sleep 1;
+ui_print "                                           46 - ";
+sleep 1;
+ui_print "                                           45 - ";
+sleep 1;
+ui_print "                                           44 - ";
+sleep 1;
+ui_print "                                           43 - ";
+sleep 1;
+ui_print "                                           42 - ";
+sleep 1;
+ui_print "                                           41 - ";
+sleep 1;
+ui_print "                                           40 - ";
+sleep 1;
+ui_print "                                           39 - ";
+sleep 1;
+ui_print "                                           38 - ";
+sleep 1;
+ui_print "                                           37 - ";
+sleep 1;
+ui_print "                                           36 - ";
+sleep 1;
+ui_print "                                           35 - ";
+sleep 1;
+ui_print "                                           34 - ";
+sleep 1;
+ui_print "                                           33 - ";
+sleep 1;
+ui_print "                                           32 - ";
+sleep 1;
+ui_print "                                           31 - ";
+sleep 1;
+ui_print "                                           30 - ";
+sleep 1;
+ui_print "                                           29 - ";
+sleep 1;
+ui_print "                                           28 - ";
+sleep 1;
+ui_print "                                           27 - ";
+sleep 1;
+ui_print "                                           26 - ";
+sleep 1;
+ui_print "                                           25 - ";
+sleep 1;
+ui_print "                                           24 - ";
+sleep 1;
+ui_print "                                           23 - ";
+sleep 1;
+ui_print "                                           22 - ";
+sleep 1;
+ui_print "                                           21 - ";
+sleep 1;
+ui_print "                                           20 - ";
+sleep 1;
+ui_print "                                           19 - ";
+sleep 1;
+ui_print "                                           18 - ";
+sleep 1;
+ui_print "                                           17 - ";
+sleep 1;
+ui_print "                                           16 - ";
+sleep 1;
+ui_print "                                           15 - ";
+sleep 1;
+ui_print "                                           14 - ";
+sleep 1;
+ui_print "                                           13 - ";
+sleep 1;
+ui_print "                                           12 - ";
+sleep 1;
+ui_print "                                           11 - ";
+sleep 1;
+ui_print "                                           10 - ";
+sleep 1;
+ui_print "                                           09 - ";
+sleep 1;
+ui_print "                                           08 - ";
+sleep 1;
+ui_print "                                           07 - ";
+sleep 1;
+ui_print "                                           06 - ";
+sleep 1;
+ui_print "                                           05 - ";
+sleep 1;
+ui_print "                                           04 - ";
+sleep 1;
+ui_print "                                           03 - ";
+sleep 1;
+ui_print "                                           02 - ";
+sleep 1;
+ui_print "                                           01 - ";
+sleep 1;
+ui_print "                                           00 - ";
+sleep 1;
+ui_print " ";
+ui_print " > Bye! Bye! Remember Bro #CryptX Intact!!   ";
+sleep 2;
+ui_print " ";
+ui_print " ";
+ui_print " ";
+device_reboot_fastboot
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Backend Services                             [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+BOOTMODE=false;
+ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true;
+$BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMODE=true;
+
+DIR=/sdcard;
+$BOOTMODE || DIR=$(dirname "$ZIPFILE");
+[ $DIR == "/sideload" ] && DIR=/tmp;
+
+[ -d /postinstall/tmp ] && POSTINSTALL=/postinstall;
+[ "$CXHOME" ] || export CXHOME=$POSTINSTALL/tmp/CryptX;
+[ "$ANDROID_ROOT" ] || ANDROID_ROOT=/system;
+
+debugging() {
+local debug log path;
+case $(basename "$ZIPFILE" .zip) in
+*-debugging) debug=1;;
+esac;
+for path in /tmp /cache /metadata /persist; do
+[ -f $path/.ak3-debugging ] && debug=1;
+done;
+if [ "$debug" ]; then
+ui_print " - Creating debugging archive in $DIR           ";
+[ -f /tmp/recovery.log ] && log=/tmp/recovery.log;
+tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $CXHOME $log;
+fi;
+}
+
+cleanup() {
+cd $CXHOME/../;
+rm -rf $CXHOME;
+}
+
+int2ver() {
+if [ "$1" -eq "$1" ] 2>/dev/null; then
+echo "$1.0.0";
+elif [ ! "$(echo "$1" | cut -d. -f3)" ]; then
+echo "$1.0";
+else
+echo "$1";
+fi;
+}
+
+dump_moduleinfo() {
+cat <<EOF > $1;
+id=CryptX-helper
+name=CryptX Helper Module
+version=$(awk '{ print $3 }' $CXHOME/vertmp) $(grep -oE '#.[0-9]' $CXHOME/vertmp)
+versionCode=1
+author=@itsD3XT3R07
+description=$ROM_NAME
+EOF
+}
+
+dump_moduleremover() {
+cat <<'EOF' > $1;
+#!/system/bin/sh
+MODDIR=${0%/*};
+if [ "$(cat /proc/version)" != "$(cat $MODDIR/version)" ]; then
+  rm -rf $MODDIR;
+  exit;
+fi;
+rm -f $MODDIR/update;
+. $MODDIR/post-fs-data.2.sh;
+EOF
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Module: Volume Key Selector                  [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+setup_vks_module() {
+
+setup_keycheck_extraction;
+
+keytest() {
+ui_print "------------------------------------------------";
+ui_print " ";
+ui_print " - Press Any Volume Key...                      ";
+(/system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > /tmp/bin/android/events) || return 1
+return 0
+}
+
+chooseport() {
+#note from chainfire @xda-developers: getevent behaves weird when piped, and busybox grep likes that even less than toolbox/toybox grep
+while (true); do
+/system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > /tmp/bin/android/events
+if (`cat /tmp/bin/android/events 2>/dev/null | /system/bin/grep VOLUME >/dev/null`); then
+break
+fi
+done
+if (`cat /tmp/bin/android/events 2>/dev/null | /system/bin/grep VOLUMEUP >/dev/null`); then
+return 0
+else
+return 1
+fi
+}
+
+chooseportold() {
+# Calling it first time detects previous input. Calling it second time will do what we want
+$bin/keycheck
+$bin/keycheck
+SEL=$?
+if [ "$1" == "UP" ]; then
+UP=$SEL
+elif [ "$1" == "DOWN" ]; then
+DOWN=$SEL
+elif [ $SEL -eq $UP ]; then
+return 0
+elif [ $SEL -eq $DOWN ]; then
+return 1
+else
+
+ui_print " - Failed To Detect Volume Key Selection!!      ";
+abort_status=1;
+abort_reason=" - Failed To Detect Volume Key Selection!!";
+abort;
+fi
+}
+
+if keytest; then
+FUNCTION=chooseport
+else
+FUNCTION=chooseportold
+ui_print " - Press Volume Up Again...                     ";
+$FUNCTION "UP" 
+ui_print " - Press Volume Down Again...                   ";
+$FUNCTION "DOWN"
+fi
+ui_print " ";
+ui_print "------------------------------------------------";
+ui_print " ";
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Flashing Logs                                [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+activate_cryptx_logs() {
+if [ $CryptXModule_ACTIVATE_DLS = 0 ]; then
+
+log_file=/data/media/0/CryptX/CryptX.log
+
+# Delete Log File
+rm -f $log_file
+
+ac01=$user_devicecode; ac02=$user_serial; ac03=$user_socserial;
+
+# User Session ID Module Workaround Example
+# -->    ZX-(devicecode)-FMJ-(serial)-LQBZ-(socserial)-ANRTS    <--
+user_session_id_config=$dc26$dc24$dc53$ac01$dc53$dc06$dc13$dc10$dc53$ac02$dc53$dc12$dc17$dc02$dc26$dc53$ac03$dc53$dc01$dc14$dc18$dc20$dc19
+
+echo "------------------------------------------------" >> $log_file
+echo " CryptX [Plus] Service                          " >> $log_file
+echo "------------------------------------------------" >> $log_file 
+echo "                                                " >> $log_file 
+echo " [-] Log Created On:                            " >> $log_file 
+echo "  > $(date +"%d-%m-%Y %r")                      " >> $log_file
+echo "  > $(date +"%d%m%Y%H%M%S")                     " >> $log_file
+echo "                                                " >> $log_file
+echo " [-] File Type:                                 " >> $log_file 
+echo "  > Activator                                   " >> $log_file 
+echo "                                                " >> $log_file
+echo " [-] ROM Information:                           " >> $log_file 
+echo "  > $ROM_NAME $ROM_VER $ROM_VAR                 " >> $log_file 
+echo "                                                " >> $log_file 
+echo " [-] ROM Maintainer:                            " >> $log_file 
+echo "  > $ROM_DEV                                    " >> $log_file 
+echo "                                                " >> $log_file 
+echo " [-] CryptX Maintainer:                         " >> $log_file
+echo "  > $SEC_DEV                                    " >> $log_file
+echo "                                                " >> $log_file
+echo " [-] Activator Information:                     " >> $log_file
+echo "  > Version: $CryptX_ACTIVATOR_VARIANT          " >> $log_file 
+echo "  > Variant: $CryptX_ACTIVATOR_VERSION          " >> $log_file 
+echo "  > Updated: On $MOD_DATE At $MOD_TIME          " >> $log_file
+echo "                                                " >> $log_file
+echo " [-] CryptX Recovery Support:                   " >> $log_file
+if [ $CryptXModule_ACTIVATE_CRS = 0 ]; then
+echo "  > This Activator & ROM Bundle Supports        " >> $log_file
+echo "    All Types Of Recovery.                      " >> $log_file
+else
+echo " > This Activator & ROM Only Flashes With       " >> $log_file
+echo "   CryptX Recovery.                             " >> $log_file
+echo "                                                " >> $log_file
+echo " ! Supported CryptX Recovery Version:           " >> $log_file
+echo "                                                " >> $log_file
+if [ $CXRVC < $CX_MINC ] && [ $CXRVC > $CX_MAXC ]; then
+echo " > Recovery Parameters Are Perfect!             " >> $log_file
+elif [ $CXRVC > $CX_MINC ]; then
+echo " > Detected CryptX Recovery Beta Build! Please  " >> $log_file
+echo "   Update To $CX_MINI$dc62 Stable Recovery In   " >> $log_file
+echo "   Order To Flash This Activator.               " >> $log_file
+echo "   (VERSIONCODE: 100-150)                       " >> $log_file  
+elif [ $CXRVC < $CX_MAXC ]; then
+echo " > This Activator Only Supports CryptX Recovery " >> $log_file
+echo "   $CX_MINI - $CX_MAXI Only!                    " >> $log_file
+fi
+fi
+echo "                                                " >> $log_file
+echo "------------------------------------------------" >> $log_file
+echo "                                                " >> $log_file
+echo " [-] Device Statistics:                         " >> $log_file
+echo "  > $TARGET_DEVICE | $TARGET_BRAND $TARGET_MODEL" >> $log_file
+echo "                                                " >> $log_file
+echo " [-] Device Partitions Information              " >> $log_file
+device_slot_status
+echo "                                                " >> $log_file
+echo "------------------------------------------------" >> $log_file
+echo "                                                " >> $log_file
+echo " [-] Last File(s) Flashing Information:         " >> $log_file
+module_package_flash_status
+module_credentials_safety
+echo "                                                " >> $log_file
+echo "------------------------------------------------" >> $log_file
+echo "                                                " >> $log_file
+echo " [?] Busybox Information:                       " >> $log_file
+echo " [#] Setup Status:                              " >> $log_file
+busybox_setup_status
+echo " [#] Version:                                   " >> $log_file
+echo "  >  $($BB | head -1)                           " >> $log_file
+echo " [#] Setup Directory:                           " >> $log_file
+echo "  >  $BB                                        " >> $log_file
+echo "                                                " >> $log_file
+echo "------------------------------------------------" >> $log_file
+echo "                                                " >> $log_file
+echo " [#] CryptX Developers Console                  " >> $log_file
+echo "                                                " >> $log_file
+echo "  ! Volume Key Selector              (ID:CX_VKS)" >> $log_file
+module_vks_info
+echo "                                                " >> $log_file
+echo "  ! CryptX Recovery Support          (ID:CX_CRS)" >> $log_file
+module_crs_info
+echo "                                                " >> $log_file
+echo "  ! Disable Logs Service             (ID:CX_DLS)" >> $log_file
+module_dls_info
+echo "                                                " >> $log_file
+echo "  ! Preview Device Confidential Info (ID:CX_USD)" >> $log_file
+module_usd_info
+echo "                                                " >> $log_file
+echo "  ! Hard Brick Device                (ID:CX_HBD)" >> $log_file
+module_hbd_info
+echo "                                                " >> $log_file
+echo "------------------------------------------------" >> $log_file
+echo "                                                " >> $log_file
+echo " [-] Official Updates/Information Channel:      " >> $log_file
+echo "  >  https://bit.ly/CryptXChannel               " >> $log_file
+echo "     OR                                         " >> $log_file
+echo "  >  @CryptXSecurity | [Search On Telegram]     " >> $log_file
+echo "                                                " >> $log_file
+echo " [-] Official Contact Page:                     " >> $log_file
+echo "  >  https://bit.ly/CryptXSupport               " >> $log_file
+echo "     OR                                         " >> $log_file
+echo "  >  @itsD3XT3R07 [Search On GitHub/Telegram]   " >> $log_file
+echo "                                                " >> $log_file
+echo " (i) Please Only Visit These Link Or ID's If    " >> $log_file
+echo "     You're Intrested To Get CryptX Security    " >> $log_file
+echo "     Or Report Us Some Bugs. Any 3rd Party      " >> $log_file
+echo "     Entities Claiming Us Is Fake & We Wont Be  " >> $log_file
+echo "     Responsible For User's Potential Loss      " >> $log_file
+echo "                                                " >> $log_file
+echo "------------------------------------------------" >> $log_file
+echo "                                                " >> $log_file
+if [ $CryptXModule_ACTIVATE_USD = 1 ]; then
+echo " [?] These Informations Are Confidential, Please" >> $log_file
+echo "     Share It To Corressponding Developer When  " >> $log_file
+echo "     Asked For Fixing/Testing Purposes!         " >> $log_file
+echo "                                                " >> $log_file
+echo " [!] User Data:                                 " >> $log_file
+echo " [#] Server User ID:                            " >> $log_file
+echo "  > $user_dataid                                " >> $log_file
+echo " [#] User Real Name:                            " >> $log_file
+echo "  > $user_name                                  " >> $log_file
+echo " [#] User Username:                             " >> $log_file
+echo "  > $user_username                              " >> $log_file
+echo " [#] User Device:                               " >> $log_file
+echo "  > $user_devicecode                            " >> $log_file
+echo " [#] Session Code:                              " >> $log_file
+echo "  > $user_session_id_config                     " >> $log_file
+else
+echo " [?] These Informations Are Confidential, Please" >> $log_file
+echo "     Share It To Corressponding Developer When  " >> $log_file
+echo "     Asked For Fixing/Testing Purposes!         " >> $log_file
+echo "                                                " >> $log_file
+echo " [!] User Data:                                 " >> $log_file
+echo " [#] Server User ID:                            " >> $log_file
+echo "  > $user_dataid                                " >> $log_file
+echo " [#] User Real Name:                            " >> $log_file
+echo "  > $user_name                                  " >> $log_file
+echo " [#] User Username:                             " >> $log_file
+echo "  > $user_username                              " >> $log_file
+echo " [#] User Device:                               " >> $log_file
+echo "  > $user_devicecode                            " >> $log_file
+echo " [#] User Device Serial Number:                 " >> $log_file
+echo "  > $user_serial                                " >> $log_file
+echo " [#] User Device SOC Serial Number:             " >> $log_file
+echo "  > $user_socserial                             " >> $log_file
+echo "                                                " >> $log_file
+echo "------------------------------------------------" >> $log_file
+echo "                                                " >> $log_file
+fi
+echo " Thanks For Trying Out $ROM_NAME$dc58           " >> $log_file
+echo " #CryptX                                        " >> $log_file
+echo "                                                " >> $log_file
+echo "                                                " >> $log_file
+echo "                                                " >> $log_file
+fi
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Setup Busybox Services                              [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+setup_busybox_services() {
+$BOOTMODE && return
+MAGISKTMP=/sbin/.magisk
+MAGISKBIN=/data/adb/magisk
+[ -z "$TMPDIR" ] && TMPDIR=/dev/tmp
+ui_print " - Setting up busybox core components...        ";
+if [ -x "$MAGISKTMP"/busybox/busybox ]; then
+BB=$MAGISKTMP/busybox/busybox
+[ -z "$BBDIR" ] && BBDIR=$MAGISKTMP/busybox
+ui_print " - Busybox Setup Completed!                     ";
+busybox_setup_status() {
+echo "  > Busybox Setup Completed Successfully!       " >> $log_file
+}
+# ui_print " - Busybox exists at $BB                        ";
+elif [ -x $TMPDIR/bin/busybox ]; then
+BB=$TMPDIR/bin/busybox
+ui_print " - Busybox Setup Completed!                     ";
+busybox_setup_status() {
+echo "  > Busybox Setup Completed Successfully!       " >> $log_file
+}
+# ui_print " - Busybox exists at $BB                        ";
+[ -z "$BBDIR" ] && BBDIR=$TMPDIR/bin
+# we already went through the installation process, if we are here, that means busybox is installed so return!
+return
+else
+# Construct the PATH
+[ -z $BBDIR ] && BBDIR=$TMPDIR/bin
+mkdir -p $BBDIR
+if [ -x $MAGISKBIN/busybox ]; then
+BBInstaller=$MAGISKBIN/busybox
+ui_print " - Busybox Setup Completed!                     ";
+busybox_setup_status() {
+echo "  > Busybox Setup Completed Successfully!       " >> $log_file
+}
+# ui_print " - Busybox exists at $BBInstaller               ";
+elif [ -f "$BBDIR/busybox" ]; then
+BBInstaller=$BBDIR/busybox
+ui_print " - Busybox Setup Completed!                     ";
+busybox_setup_status() {
+echo "  > Busybox Setup Completed Successfully!       " >> $log_file
+}
+# ui_print " - Busybox exists at $BBInstaller               ";
+else
+ui_print " - Unpacking Busybox files...                   ";
+BBInstaller=/tmp/CryptX/busybox
+fi
+ln -s "$BBInstaller" $BBDIR/busybox
+$BBInstaller --install -s $BBDIR
+if [ $? != 0 ] || [ -z "$(ls $BBDIR)" ]; then
+ui_print " - Busybox Setup Failed!                        ";
+busybox_setup_status() {
+echo "  > Busybox Setup Failed!                       " >> $log_file
+}
+abort_status=1
+abort_reason="Busybox Setup Failed!!";
+abort;
+else
+ls $BBDIR > "$busyboxLog"
+fi
+BB=$BBDIR/busybox
+ui_print " - Busybox Setup Completed!                     ";
+fi
+version=$($BB | head -1)
+[ -z "$version" ] && version=$(busybox | head -1) && BB=busybox
+[ -z "$version" ] && abort_status=1 && abort_reason="- Cannot find busybox, Installation Failed!" && abort
+echo "$PATH" | grep -q "^$BBDIR" || export PATH=$BBDIR:$PATH
+} 
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Package Setup Services                       [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+unpack_package_files() {
+
+# Delete TMP Package Directory
+rm -rf /tmp/CryptX
+# Create TMP Package Directory
+mkdir -p /tmp/CryptX
+
+if [ -d /data/media/0/CryptX ]; then
+package_extract_sourcefile "CryptX/tools/placeholder" "/data/media/0/CryptX/dev/tmp"
+echo "d3xt3r@console: server session intact. new file deployed" >> /data/media/0/CryptX/devconsole/session_activated
+else
+# Delete TMP Package Directory
+rm -rf /data/media/0/CryptX
+# Create TMP Package Directory
+mkdir -p /data/media/0/CryptX
+
+# Delete TMP Package Directory
+rm -rf /data/media/0/CryptX/devconsole
+# Create TMP Package Directory
+mkdir -p /data/media/0/CryptX/devconsole
+fi
+
+# Extract Source Files
+package_extract_sourcefile "CryptX/tools/busybox" "/tmp/CryptX/busybox"
+package_extract_sourcefile "CryptX/tools/fec" "/tmp/CryptX/fec"
+package_extract_sourcefile "CryptX/tools/httools_static" "/tmp/CryptX/httools_static"
+package_extract_sourcefile "CryptX/tools/lptools_static" "/tmp/CryptX/lptools_static"
+package_extract_sourcefile "CryptX/tools/magiskboot" "/tmp/CryptX/magiskboot"
+package_extract_sourcefile "CryptX/tools/magiskpolicy" "/tmp/CryptX/magiskpolicy"
+package_extract_sourcefile "CryptX/tools/snapshotupdater_static" "/tmp/CryptX/snapshotupdater_static"
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/$FILE_INFO"
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/user_serial_verified"
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/user_serial_unverified"
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/user_soc_serial_verified"
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/user_soc_serial_unverified"
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/device_model_verified"
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/device_model_unverified"
+if [ $CryptXModule_ACTIVATE_CRS = 1 ]; then
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/recovery_version_verified"
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/recovery_version_unverified"
+else
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/recovery_checker_locked"
+fi
+
+chmod 755 /tmp/CryptX/busybox
+chmod 755 /tmp/CryptX/fec
+chmod 755 /tmp/CryptX/httools_static
+chmod 755 /tmp/CryptX/lptools_static
+chmod 755 /tmp/CryptX/magiskboot
+chmod 755 /tmp/CryptX/magiskpolicy
+chmod 755 /tmp/CryptX/snapshotupdater_static
+chmod 755 /tmp/CryptX/user_serial_verified
+chmod 755 /tmp/CryptX/user_serial_unverified
+chmod 755 /tmp/CryptX/user_soc_serial_verified
+chmod 755 /tmp/CryptX/user_soc_serial_unverified
+chmod 755 /tmp/CryptX/device_model_verified
+chmod 755 /tmp/CryptX/device_model_unverified
+chmod 755 /tmp/CryptX/recovery_version_verified
+chmod 755 /tmp/CryptX/recovery_version_verified
+
+setup_keycheck_extraction() {
+# Perform Partiality Extraction Case For Keycheck Method!
+package_extract_sourcefile "CryptX/tools/keycheck" "/tmp/CryptX/keycheck"
+copyfile "/tmp/CryptX/keycheck" "/tmp/bin/android/keycheck"
+chmod 755 /tmp/bin/android/keycheck
+
+# Revise Directory 'bin' for keycheck config
+bin=/tmp/bin/android;
+}
+
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Next-Gen Activator Sub-Modules Services      [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+# Device Is Dynamic Or Not Config
+check_device_type() {
+[ -z "$TARGET_DEVICE_TYPE" ] && TARGET_DEVICE_TYPE="false"
+BLK_PATH=/dev/block/bootdevice/by-name
+if [ -d /dev/block/mapper ]; then
+TARGET_DEVICE_TYPE="true"
+BLK_PATH="/dev/block/mapper"
+
+if [ "$TARGET_SLOT" = "_a" ]; then
+ACTIVE_SLOT="_a";
+INACTIVE_SLOT="_b";
+else
+if [ "$TARGET_SLOT" = "_b" ]; then
+ACTIVE_SLOT="_b";
+INACTIVE_SLOT="_a";
+else
+ACTIVE_SLOT="_null";
+INACTIVE_SLOT="_null";
+artificial_retrofit_status=1;
+fi
+fi
+
+# ui_print " - Test Type: Via Directory Method              ";
+ui_print " > Dynamic Slots (A/B): Yes                     ";
+ui_print " > Active Slot: $TARGET_SLOT                    ";
+device_slot_status() {
+if [ $artificial_retrofit_status = 1 ]; then
+echo "  > Test Type: Directory Method                 " >> $log_file
+echo "  > Dynamic Slots (A/B): Yes                    " >> $log_file
+echo "  > Active Slot: $ACTIVE_SLOT                   " >> $log_file
+echo "  > Inactive Slot: $INACTIVE_SLOT               " >> $log_file
+echo "                                                " >> $log_file
+echo "  - Device Seems To Be Non-Dynamic & Maybe      " >> $log_file
+echo "    Converted Into Dynamic! It's Highly         " >> $log_file
+echo "    Recommended To Not Flash ROM At This Point! " >> $log_file
+else
+echo "  > Test Type: Directory Method                 " >> $log_file
+echo "  > Dynamic Slots (A/B): Yes                    " >> $log_file
+echo "  > Active Slot: $ACTIVE_SLOT                   " >> $log_file
+echo "  > Inactive Slot: $INACTIVE_SLOT               " >> $log_file
+fi
+}
+device_dynamic=1;
+else
+# ui_print " - Test Type: Via Directory Method              ";
+ui_print " > Dynamic Slots (A/B): No                      ";
+device_slot_status() {
+echo "  > Test Type: Directory Method                 " >> $log_file
+echo "  > Dynamic Slots (A/B): No                     " >> $log_file
+}
+fi
+device_dynamic=0;
+}
+
+# Check Whether Package Was Flashed Properly Or Not
+module_package_flash_status() {
+if [ $package_flash_status = 0 ]; then
+echo "  > Flash Was Not Successful.                   " >> $log_file
+echo "  > Reason: $abort_reason                       " >> $log_file
+else
+echo "  > Flash Was Successful.                       " >> $log_file
+fi
+
+}
+
+# Check Whether Safety Mode Has To Be Triggered Or Not
+module_activate_safety_mode() {
+rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/CryptX/user_soc_serial_verified
+package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/user_serial_flash_blocked"
+}
+
+# CryptX Safety Checker Module
+module_credentials_safety() {
+echo "                                                " >> $log_file
+echo " [-] CryptX Safety Information:                 " >> $log_file
+
+if [ $safety_mode_triggered = 0 ]; then
+echo "  > Your Data Is Correctly Registered, You May  " >> $log_file
+echo "    Proceed Flashing Our ROM.                   " >> $log_file
+echo "    Thanks For Purchasing!                      " >> $log_file
+else
+if [ $safety_mode_triggered = 1 ]; then
+echo "  > Your Data Is Incorrectly Registered.        " >> $log_file
+echo "    Do Not Proceed To Flash The ROM! Contact    " >> $log_file
+echo "    Security Developer As Soon As Possible!     " >> $log_file
+echo "  ! CryptX Services Have Locked Flashing Our    " >> $log_file
+echo "    ROM For Device Safety Purposes.             " >> $log_file
+module_activate_safety_mode
+else
+if [ $safety_mode_triggered = 2 ]; then
+echo "  > Your Data Is Not Registered At All.         " >> $log_file
+echo "    Your Wish If You Need To Flash The ROM Or   " >> $log_file
+echo "    Not I/My Team Won't Be Responsible If You   " >> $log_file
+echo "    End Up Hard-Bricking Your Device!!          " >> $log_file
+echo "  > Secured With #CryptX                        " >> $log_file
+fi
+fi
+fi
+}
+
+# Check Device Model Supported Or Not
+check_device_model() {
+if [ "$TARGET_DEVICE" == "beryllium" ]; then
+rm -f /tmp/CryptX/device_model_unverified
+database_index_beryllium
+else
+if [ "$TARGET_DEVICE" == "marble" ] || [ "$TARGET_DEVICE" == "marble_in" ] || [ "$TARGET_DEVICE" == "marble_cn" ] || [ "$TARGET_DEVICE" == "marble_global" ] || [ "$TARGET_DEVICE" == "marblein" ]; then
+rm -f /tmp/CryptX/device_model_unverified
+database_index_marble
+else
+if [ "$TARGET_DEVICE" == "redwood" ] || [ "$TARGET_DEVICE" == "redwood_in" ] || [ "$TARGET_DEVICE" == "redwood_cn" ] || [ "$TARGET_DEVICE" == "redwood_global" ] || [ "$TARGET_DEVICE" == "redwoodin" ]; then
+rm -f /tmp/CryptX/device_model_unverified
+database_index_redwood
+else
+if [ "$TARGET_DEVICE" == "garnet" ] || [ "$TARGET_DEVICE" == "garnet_in" ] || [ "$TARGET_DEVICE" == "garnet_cn" ] || [ "$TARGET_DEVICE" == "garnet_global" ] || [ "$TARGET_DEVICE" == "garnetin" ] || [ "$TARGET_DEVICE" == "garnetp" ] || [ "$TARGET_DEVICE" == "garnetp_in" ] || [ "$TARGET_DEVICE" == "garnetp_global" ] || [ "$TARGET_DEVICE" == "garnetp_cn" ]; then
+rm -f /tmp/CryptX/device_model_unverified
+else
+rm -f /tmp/CryptX/device_model_verified
+fi
+fi
+fi
+rm -f /tmp/CryptX/device_model_verified
+fi
+}
+
+# Check User Credentials
+check_user_credentials() {
+check_credentials_user_001
+}
+
+# Load VKS Module Flashing Content
+load_content_vks_module() {
+sleep 0.2;
+ui_print " - Do You Wish To Continue the Flash?           ";
+ui_print " ";
+sleep 0.2;
+ui_print " > Press Volume Up Key   = Yes, Proceed Flash! ";
+ui_print " > Press Volume Down Key = No, Abort Flash!    ";
+ui_print " ";
+
+if $FUNCTION; then
+ui_print " > Flash Will Continue Now!                     ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+else
+ui_print " ";
+ui_print " - Make Sure To Join Our Channel For More Info: ";
+ui_print " > https://t.me/CryptXSecurity                  ";
+ui_print " ";
+ui_print " > Ending Flash Here, Proceed To Flash ROM Now..";
+ui_print " ";
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " $dc56$SEC_NID";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " $dc56$SEX_DEV";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " $dc56$ROM_NAME";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+exit 0
+fi
+}
+
+# Check Wether User Wants Volume Key Support Module Or Not
+module_setup_vks() {
+if [ $CryptXModule_ACTIVATE_VKS = 1 ]; then
+setup_vks_module
+load_content_vks_module
+else
+# SKIP: SUPPORT OF VKS MODULE
+CX_SETUP_VKS=0;
+fi
+}
+
+module_setup_crs() {
+ui_print " - Your Recovery Statistics:                    ";
+sleep 2;
+ui_print " > Version: $CryptX_Recovery_Version | $CXRVC   ";
+sleep 0.2
+ui_print " > Variant: $CryptX_Recovery_Variant            ";
+sleep 0.2
+ui_print " > Updated: $CryptX_Recovery_BIDInfo            ";
+
+sleep 0.2
+ui_print " ";
+sleep 0.2
+ui_print " - Checking Your Recovery Status...             ";
+sleep 0.2
+
+if [ $CXRVC < $CX_MINC ] && [ $CXRVC > $CX_MAXC ]; then
+ui_print " > All Parameters Are Fine                      ";
+rm -rf /tmp/CryptX/recovery_version_unverified
+elif [ $CXRVC > $CX_MINC ]; then
+ui_print " > You Are Using A Lower Version Of CryptX      ";
+ui_print "   Recovery, Please Flash Higher Version        ";
+ui_print "   To Proceed Flashing.                         ";
+rm -rf /tmp/CryptX/recovery_version_verified
+abort_status=1;
+abort_reason="Please Flash Higher Version Of CryptX Recovery!"
+abort;
+elif [ $CXRVC < $CX_MAXC ]; then
+ui_print " > You Are Using A Higher Version Of CryptX     ";
+ui_print "   Recovery, Please Flash Lower Version To      ";
+ui_print "   Proceed Flashing.                            ";
+rm -rf /tmp/CryptX/recovery_version_verified
+abort_status=1;
+abort_reason="Please Flash Lower Version Of CryptX Recovery!"
+abort;
+fi
+}
+
+# Module: Volume Key Selector Config(s)
+module_vks_info() {
+if [ $CryptXModule_ACTIVATE_VKS = 1 ]; then
+echo "  > This Feature Is Bundled With This Activator " >> $log_file
+echo "    Version!                                    " >> $log_file
+else
+echo "  > This Feature Is Not Bundled With This       " >> $log_file
+echo "    Activator Version!                          " >> $log_file
+fi
+} 
+
+# Module: CryptX Recovery Support Config(s)
+module_crs_info() {
+if [ $CryptXModule_ACTIVATE_CRS = 1 ]; then
+echo "  > This Feature Is Bundled With This Activator " >> $log_file
+echo "    Version!                                    " >> $log_file
+else
+echo "  > This Feature Is Not Bundled With This       " >> $log_file
+echo "    Activator Version!                          " >> $log_file
+fi
+}
+
+# Module: Disable Log Service Config(s)
+module_dls_info() {
+if [ $CryptXModule_ACTIVATE_DLS = 1 ]; then
+echo "  > This Feature Is Bundled With This Activator " >> $log_file
+echo "    Version!                                    " >> $log_file
+else
+echo "  > This Feature Is Not Bundled With This       " >> $log_file
+echo "    Activator Version!                          " >> $log_file
+fi
+}
+
+# Module: Preview Device Confidential Details Config(s)
+module_usd_info() {
+if [ $CryptXModule_ACTIVATE_USD = 1 ]; then
+echo "  > This Feature Is Bundled With This Activator " >> $log_file
+echo "    Version!                                    " >> $log_file
+else
+echo "  > This Feature Is Not Bundled With This       " >> $log_file
+echo "    Activator Version!                          " >> $log_file
+fi
+}
+
+# Module: Hard-Brick Device Config(s)
+module_hbd_info() {
+if [ $CryptXModule_ACTIVATE_HBD = 1 ]; then
+echo "  > This Feature Is Bundled With This Activator " >> $log_file
+echo "    Version!                                    " >> $log_file
+else
+echo "  > This Feature Is Not Bundled With This       " >> $log_file
+echo "    Activator Version!                          " >> $log_file
+fi
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Partition(s) Variables                       [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+# Config To Mount Partitions
+begin_mounting() {
+  $BOOTMODE && return 1;
+  ui_print " - Preparing To Mount Partitions...             ";
+  mount_all;
+  OLD_LD_PATH=$LD_LIBRARY_PATH;
+  OLD_LD_PRE=$LD_PRELOAD;
+  OLD_LD_CFG=$LD_CONFIG_FILE;
+  unset LD_LIBRARY_PATH LD_PRELOAD LD_CONFIG_FILE;
+  if [ ! "$(getprop 2>/dev/null)" ]; then
+    getprop() {
+      local propdir propfile propval;
+      for propdir in / /system_root /system /vendor /product /system_ext /odm; do
+        for propfile in default.prop build.prop; do
+          test "$propval" && break 2 || propval="$(file_getprop $propdir/$propfile "$1" 2>/dev/null)";
+        done;
+      done;
+      test "$propval" && echo "$propval" || echo "";
+    }
+  elif [ ! "$(getprop ro.build.type 2>/dev/null)" ]; then
+    getprop() {
+      ($(which getprop) | $BB grep "$1" | $BB cut -d[ -f3 | $BB cut -d] -f1) 2>/dev/null;
+    }
+  fi;
+  ui_print " - Done!                                        ";
+  ui_print " ";
+}
+
+is_mounted_rw() {
+  local mounted_rw=false
+  local startswith=$(beginswith / "$1")
+  test "$startswith" == "false" && part=/"$1" || part="$1"
+  touch "$part"/.rw && rm "$part"/.rw && mounted_rw=true
+  # echo "  > Checked If $part/.rw Is Writable i.e.       " >> /data/media/0/CryptX/CryptX.log
+  # echo "    $mounted_rw ($1/.rw being original argument)" >> /data/media/0/CryptX/CryptX.log
+  echo $mounted_rw
+}
+
+# Mount all the partitions
+mount_all() {
+  local byname mount slot system;
+  if ! is_mounted /cache; then
+    mount /cache 2>/dev/null && UMOUNT_CACHE=1
+  fi
+  if ! is_mounted /data; then
+    #ui_print " - Mounting /data" "$mountLog"
+    $BB mount /data && UMOUNT_DATA=1
+  else
+    ui_print " > /data is already mounted!                    ";
+    # echo "  > /data Is Already Mounted!                   " >> /data/media/0/CryptX/CryptX.log
+  fi;
+
+  (for mount in /vendor /product /system_ext /persist; do
+	#ui_print " - Mounting $mount                              ";
+	#ui_print " - Mounting $ANDROID_ROOT                       ";
+    $BB mount -o ro -t auto $mount;
+  done) 2>/dev/null;
+  
+  # ui_print " ";
+  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  #ui_print " - Mounting $ANDROID_ROOT                       ";
+  #ui_print " - Setting up Mount Point $ANDROID_ROOT         ";
+  #ui_print " > ANDROID_ROOT=$ANDROID_ROOT                   ";
+  # echo "  > Setting Up Mount Point $ANDROID_ROOT        " >> /data/media/0/CryptX/CryptX.log
+  # echo "  > ANDROID_ROOT=$ANDROID_ROOT                  " >> /data/media/0/CryptX/CryptX.log
+  setup_mountpoint "$ANDROID_ROOT"
+  if ! is_mounted "$ANDROID_ROOT"; then
+    mount -o ro -t auto "$ANDROID_ROOT" 2>/dev/null
+  fi
+  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  byname=bootdevice/by-name;
+  [ -d /dev/block/$byname ] || byname=$($BB find /dev/block/platform -type d -name by-name 2>/dev/null | $BB head -n1 | $BB cut -d/ -f4-);
+  [ -d /dev/block/mapper ] && byname=mapper && addToGeneralLog "- Device with dynamic partitions Found" "$mountLog";
+  [ -e /dev/block/$byname/system ] || slot=$(find_slot);
+  case $ANDROID_ROOT in
+    /system_root) setup_mountpoint /system;;
+    /system)
+      if ! is_mounted /system && ! is_mounted /system_root; then
+        setup_mountpoint /system_root;
+		#ui_print "  > Mounting /system_root as Readwrite!         ";  
+		# echo "  > Mounting /system_root Partition As Readwrite" >> /data/media/0/CryptX/CryptX.log
+        $BB mount -o rw -t auto /system_root;
+      elif [ -f /system/system/build.prop ]; then
+        setup_mountpoint /system_root;
+		#ui_print " > Moving /system to /system_root                ";
+      	# echo "  > Moving /system to /system_root              " >> /data/media/0/CryptX/CryptX.log
+        $BB mount --move /system /system_root;
+      fi;
+      ret=$?
+	  #ui_print " > Command Execution Status: $ret                ";
+	  echo "  > Command Execution Status: $ret              " >> /data/media/0/CryptX/CryptX.log
+      #if [ $ret -ne 0 ]; then
+	   # ui_print " > Command Execution Status: $ret                ";
+	    #ui_print " - Unmounting, Remounting /system As /system_root";
+		# echo "  > Unmounting And Remounting /system As        " >> /data/media/0/CryptX/CryptX.log
+	    # echo "    /system_root                                " >> /data/media/0/CryptX/CryptX.log
+
+        #($BB umount /system;
+        #$BB umount -l /system) 2>/dev/null
+        #$BB mount -o ro -t auto /dev/block/$byname/system$slot /system_root;
+      #else
+     	 # echo "  > $ret = 0                                    " >> /data/media/0/CryptX/CryptX.log
+     # fi
+    ;;
+  esac;
+  [ -f /system_root/system/build.prop ] && system=/system;
+  for mount in /vendor /product /system_ext; do
+      if ! is_mounted $mount && [ -L /system$mount -o -L /system_root$system$mount ]; then
+        setup_mountpoint $mount;
+        $BB mount -o ro -t auto /dev/block/$byname$mount$slot $mount;
+      fi;
+  done;
+  #ui_print " ";
+  #ui_print " > Checking If /system_root Is Mounted...        ";
+  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  # echo "  > Checking if /system_root Is Mounted...      " >> /data/media/0/CryptX/CryptX.log
+  if is_mounted /system_root; then
+#    mount_apex;
+    $BB mount -o bind /system_root$system /system;
+  elif is_mounted /system; then
+    $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system /system;
+    echo "  > /system Is Already Mounted!                 " >> /data/media/0/CryptX/CryptX.log
+  fi;
+  if ! is_mounted /persist && [ -e /dev/block/bootdevice/by-name/persist ]; then
+    setup_mountpoint /persist;
+    $BB mount -o ro -t auto /dev/block/bootdevice/by-name/persist /persist;
+  fi;
+  echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  system=/system
+  if [ -d /dev/block/mapper ]; then
+   # ui_print " ";
+	#ui_print " - Executing Blockdev SetRW For:                 ";
+	#ui_print "   /dev/block/mapper/system, vendor, product,    ";
+	#ui_print "   system_ext For Both Slots A And B!            ";
+    # echo "  > Executing Blockdev SetRW For                " >> /data/media/0/CryptX/CryptX.log
+    # echo "    /dev/block/mapper/system, vendor, product,  " >> /data/media/0/CryptX/CryptX.log
+    # echo "    system_ext For Both Slots A And B!          " >> /data/media/0/CryptX/CryptX.log
+    for block in system vendor product system_ext; do
+      for slot in "" _a _b; do
+        blockdev --setrw /dev/block/mapper/$block$slot 2>/dev/null
+      done
+    done
+  #ui_print " ";
+  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  fi
+  mount -o rw,remount -t auto /system || $BB mount -o rw,remount -t auto /
+  for partition in "vendor" "product" "system_ext"; do
+   # ui_print " - Remounting /$partition as Readwrite...        ";
+    # echo "  > Remounting /$partition as ReadWrite         " >> /data/media/0/CryptX/CryptX.log
+    $BB mount -o rw,remount -t auto "/$partition" 2>/dev/null
+  done
+  if [ -n "$PRODUCT_BLOCK" ]; then
+    if ! is_mounted /product; then
+      mkdir /product || true
+      if $BB mount -o rw "$PRODUCT_BLOCK" /product; then
+	 	ui_print " > /product Mounted Successfully!                ";
+		# echo "  > /product Mounted Successfully!              " >> /data/media/0/CryptX/CryptX.log
+      else
+	  	ui_print " > /product Failed To Mount!                     ";
+		# echo "  > /product Failed To Mount!                   " >> /data/media/0/CryptX/CryptX.log
+      fi
+    else
+		ui_print " > /product Is Already Mounted!                  ";
+		# echo "  > /product Is Already Mounted!                " >> /data/media/0/CryptX/CryptX.log
+    fi
+  fi
+  if [ -n "$SYSTEM_EXT_BLOCK" ]; then
+    if ! is_mounted /system_ext; then
+      mkdir /system_ext || true
+      if $BB mount -o rw "$SYSTEM_EXT_BLOCK" /system_ext; then
+	  	ui_print " > /system_ext Mounted Successfully!             ";
+		# echo "  > /system_ext Mounted Successfully!           " >> /data/media/0/CryptX/CryptX.log
+      else
+	  	ui_print " > /system_ext Failed To Mount!                  ";
+		# echo "  > /system_ext Failed To Mount!                " >> /data/media/0/CryptX/CryptX.log
+      fi
+    else
+		ui_print " > /system_ext Is Already Mounted!               ";
+		# echo "  > /system_ext Is Already Mounted!             " >> /data/media/0/CryptX/CryptX.log
+    fi
+  fi
+#  echo "                                                " >> /data/media/0/CryptX/CryptX.log
+}
+
+# More info on Apex here -> https://www.xda-developers.com/android-q-apex-biggest-tdynamic_partitionshing-since-project-treble/
+mount_apex() {
+  [ -d /system_root/system/apex ] || return 1;
+  local apex dest loop minorx num shcon var;
+  setup_mountpoint /apex;
+  $BB mount -t tmpfs tmpfs /apex -o mode=755 && $BB touch /apex/apextmp;
+  shcon=$(cat /proc/self/attr/current);
+  echo "u:r:su:s0" > /proc/self/attr/current 2>/dev/null; # work around LOS Recovery not allowing loop mounts in recovery context
+  minorx=1;
+  [ -e /dev/block/loop1 ] && minorx=$($BB ls -l /dev/block/loop1 | $BB awk '{ print $6 }');
+  num=0;
+  for apex in /system_root/system/apex/*; do
+    dest=/apex/$($BB basename $apex | $BB sed -E -e 's;\.apex$|\.capex$;;' -e 's;\.current$|\.release$;;');
+    $BB mkdir -p $dest;
+    case $apex in
+      *.apex|*.capex)
+        $BB unzip -qo $apex original_apex -d /apex;
+        [ -f /apex/original_apex ] && apex=/apex/original_apex;
+        $BB unzip -qo $apex apex_payload.img -d /apex;
+        $BB mv -f /apex/original_apex $dest.apex 2>/dev/null;
+        $BB mv -f /apex/apex_payload.img $dest.img;
+        $BB mount -t ext4 -o ro,noatime $dest.img $dest 2>/dev/null && echo "- $dest (direct)" >&2;
+        if [ $? != 0 ]; then
+          while [ $num -lt 64 ]; do
+            loop=/dev/block/loop$num;
+            [ -e $loop ] || $BB mknod $loop b 7 $((num * minorx));
+            $BB losetup $loop $dest.img 2>/dev/null;
+            num=$((num + 1));
+            $BB losetup $loop | $BB grep -q $dest.img && break;
+          done;
+          $BB mount -t ext4 -o ro,loop,noatime $loop $dest && echo "- $dest (loop)" >&2;
+          if [ $? != 0 ]; then
+            $BB losetup -d $loop 2>/dev/null;
+            if [ $num -eq 64 ] && [ "$(losetup -f)" = "/dev/block/loop0" ]; then
+              ui_print "Aborting apex mounts due to broken environment..." >&2;
+              break;
+            fi;
+          fi;
+        fi;
+      ;;
+      *) $BB mount -o bind $apex $dest && echo "$dest (bind)" >&2;;
+    esac;
+  done;
+  echo "$shcon" > /proc/self/attr/current 2>/dev/null;
+  for var in $($BB grep -o 'export .* /.*' /system_root/init.environ.rc | $BB awk '{ print $2 }'); do
+    eval OLD_${var}=\$$var;
+  done;
+  $($BB grep -o 'export .* /.*' /system_root/init.environ.rc | $BB sed 's; /;=/;'); unset export;
+  touch /apex/apexak3;
+  ui_print " - Done!                                        ";
+  ui_print " ";
+}
+
+# Config To Unmount partitions
+begin_unmounting() {
+  $BOOTMODE && return 1;
+  ui_print " - Preparing To Unmount Partitions...           ";
+  $BB mount -o bind /dev/urandom /dev/random;
+  if [ -L /etc ]; then
+    setup_mountpoint /etc;
+    $BB cp -af /etc_link/* /etc;
+    $BB sed -i 's; / ; /system_root ;' /etc/fstab;
+  fi;
+  umount_all;
+  ui_print " - Done!                                        ";
+  ui_print " ";
+}
+
+# Unmount all partitions on recovery clean up and for a fresh install
+umount_all() {
+  local mount;
+  (if [ ! -d /postinstall/tmp ]; then
+   # ui_print " - Unmounting /system                           ";
+	# echo "  > /system Unmounted Successfully!             " >> /data/media/0/CryptX/CryptX.log
+    $BB umount /system;
+    $BB umount -l /system;
+  fi) 2>/dev/null;
+  
+#  umount_apex; # we're not using apex so there is no need to unmount it for now.
+  (if [ ! -d /postinstall/tmp ]; then
+   # ui_print " - Unmounting /system_root...                   ";
+	# echo "  > /system_root Unmounted Successfully!        " >> /data/media/0/CryptX/CryptX.log
+    $BB umount /system_root;
+    $BB umount -l /system_root;
+  fi;
+  #ui_print " - Unmounting /vendor...                        ";
+  # echo "  > /vendor Unmounted Successfully!             " >> /data/media/0/CryptX/CryptX.log
+
+  umount /vendor; # busybox umount /vendor breaks recovery on some hacky devices
+  umount -l /vendor;
+  for mount in /mnt/system /mnt/vendor /product /mnt/product /system_ext /mnt/system_ext /persist; do
+    #echo "  > $mount Unmounted Successfully!              " >> /data/media/0/CryptX/CryptX.log
+    $BB umount $mount;
+    $BB umount -l $mount;
+  done;
+  if [ "$UMOUNT_DATA" ]; then
+	#ui_print " - Unmounting /data...                          ";
+    # echo "  > /data Unmounted Successfully!               " >> /data/media/0/CryptX/CryptX.log
+    $BB umount /data;
+    $BB umount -l /data;
+  fi
+  if [ "$UMOUNT_CACHE" ]; then
+    $BB umount /cache
+    $BB umount -l /cache
+  fi) 2>/dev/null;
+}
+
+# Unmount apex partition upon recovery cleanup
+umount_apex() {
+  [ -f /apex/apexak3 ] || return 1;
+  echo "- Unmounting apex..." >&2;
+  local dest loop var;
+  for var in $($BB grep -o 'export .* /.*' /system_root/init.environ.rc 2>/dev/null | $BB awk '{ print $2 }'); do
+    if [ "$(eval echo \$OLD_$var)" ]; then
+      eval $var=\$OLD_${var};
+    else
+      eval unset $var;
+    fi;
+    unset OLD_${var};
+  done;
+  for dest in $($BB find /apex -type d -mindepth 1 -maxdepth 1); do
+    loop=$($BB mount | $BB grep $dest | $BB grep loop | $BB cut -d\  -f1);
+    $BB umount -l $dest;
+    losetup $loop >/dev/null 2>&1 && $BB losetup -d $loop;
+  done;
+  [ -f /apex/apextmp ] && $BB umount /apex;
+  $BB rm -rf /apex/apexak3 /apex 2>/dev/null;
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Database Index                               [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+#  Index Crucial Database Information Chart
+
+# Database Index For Beryllium
+database_index_beryllium() {
+# beryllium | @BlazeWizardOP
+user001_dataid="Beryllium-001";
+user001_serial="4b1dc5eb";
+user001_socserial="1738827153";
+user001_name="Blaze | AFK";
+user001_username="@BlazeWizardOP";
+user001_devicecode="beryllium";
+}
+
+# Database Index For Redwood
+database_index_redwood() {
+# redwood | @DevilNoobIN
+user001_dataid="Redwood-001";
+user001_serial="3415b50a";
+user001_socserial="2630359867";
+user001_name="Dilip Kumar";
+user001_username="@DevilNoobIN";
+user001_devicecode="redwood";
+
+# redwood | @
+user002_dataid="Redwood-002";
+user002_serial=" ";
+user002_socserial=" ";
+user002_name=" ";
+user002_username="@";
+user002_devicecode="redwood";
+
+# redwood | @
+user003_dataid="Redwood-003";
+user003_serial=" ";
+user003_socserial=" ";
+user003_name=" ";
+user003_username="@";
+user003_devicecode="redwood";
+
+# redwood | @
+user004_dataid="Redwood-004";
+user004_serial=" ";
+user004_socserial=" ";
+user004_name=" ";
+user004_username="@";
+user004_devicecode="redwood";
+
+# redwood | @
+user005_dataid="Redwood-005";
+user005_serial=" ";
+user005_socserial=" ";
+user005_name=" ";
+user005_username="@";
+user005_devicecode="redwood";
+
+# redwood | @
+user006_dataid="Redwood-006";
+user006_serial=" ";
+user006_socserial=" ";
+user006_name=" ";
+user006_username="@";
+user006_devicecode="redwood";
+
+# redwood | @
+user007_dataid="Redwood-007";
+user007_serial=" ";
+user007_socserial=" ";
+user007_name=" ";
+user007_username="@";
+user007_devicecode="redwood";
+
+# redwood | @
+user008_dataid="Redwood-008";
+user008_serial=" ";
+user008_socserial=" ";
+user008_name=" ";
+user008_username="@";
+user008_devicecode="redwood";
+
+# redwood | @
+user009_dataid="Redwood-009";
+user009_serial=" ";
+user009_socserial=" ";
+user009_name=" ";
+user009_username="@";
+user009_devicecode="redwood";
+
+# redwood | @
+user010_dataid="Redwood-010";
+user010_serial=" ";
+user010_socserial=" ";
+user010_name=" ";
+user010_username="@";
+user010_devicecode="redwood";
+
+# redwood | @
+user011_dataid="Redwood-011";
+user011_serial=" ";
+user011_socserial=" ";
+user011_name=" ";
+user011_username="@";
+user011_devicecode="redwood";
+
+# redwood | @
+user012_dataid="Redwood-012";
+user012_serial=" ";
+user012_socserial=" ";
+user012_name=" ";
+user012_username="@";
+user012_devicecode="redwood";
+
+# redwood | @
+user013_dataid="Redwood-013";
+user013_serial=" ";
+user013_socserial=" ";
+user013_name=" ";
+user013_username="@";
+user013_devicecode="redwood";
+
+# redwood | @
+user014_dataid="Redwood-014";
+user014_serial=" ";
+user014_socserial=" ";
+user014_name=" ";
+user014_username="@";
+user014_devicecode="redwood";
+
+# redwood | @
+user015_dataid="Redwood-015";
+user015_serial=" ";
+user015_socserial=" ";
+user015_name=" ";
+user015_username="@";
+user015_devicecode="redwood";
+
+# redwood | @
+user016_dataid="Redwood-016";
+user016_serial=" ";
+user016_socserial=" ";
+user016_name=" ";
+user016_username="@";
+user016_devicecode="redwood";
+
+# redwood | @
+user017_dataid="Redwood-017";
+user017_serial=" ";
+user017_socserial=" ";
+user017_name=" ";
+user017_username="@";
+user017_devicecode="redwood";
+
+# redwood | @
+user018_dataid="Redwood-018";
+user018_serial=" ";
+user018_socserial=" ";
+user018_name=" ";
+user018_username="@";
+user018_devicecode="redwood";
+
+# redwood | @
+user019_dataid="Redwood-019";
+user019_serial=" ";
+user019_socserial=" ";
+user019_name=" ";
+user019_username="@";
+user019_devicecode="redwood";
+
+# redwood | @
+user020_dataid="Redwood-020";
+user020_serial=" ";
+user020_socserial=" ";
+user020_name=" ";
+user020_username="@";
+user020_devicecode="redwood";
+
+# redwood | @
+user021_dataid="Redwood-021";
+user021_serial=" ";
+user021_socserial=" ";
+user021_name=" ";
+user021_username="@";
+user021_devicecode="redwood";
+
+# redwood | @
+user022_dataid="Redwood-022";
+user022_serial=" ";
+user022_socserial=" ";
+user022_name=" ";
+user022_username="@";
+user022_devicecode="redwood";
+
+# redwood | @
+user023_dataid="Redwood-023";
+user023_serial=" ";
+user023_socserial=" ";
+user023_name=" ";
+user023_username="@";
+user023_devicecode="redwood";
+
+# redwood | @
+user024_dataid="Redwood-024";
+user024_serial=" ";
+user024_socserial=" ";
+user024_name=" ";
+user024_username="@";
+user024_devicecode="redwood";
+
+# redwood | @
+user025_dataid="Redwood-025";
+user025_serial=" ";
+user025_socserial=" ";
+user025_name=" ";
+user025_username="@";
+user025_devicecode="redwood";
+
+# redwood | @
+user026_dataid="Redwood-026";
+user026_serial=" ";
+user026_socserial=" ";
+user026_name=" ";
+user026_username="@";
+user026_devicecode="redwood";
+
+# redwood | @
+user027_dataid="Redwood-027";
+user027_serial=" ";
+user027_socserial=" ";
+user027_name=" ";
+user027_username="@";
+user027_devicecode="redwood";
+
+# redwood | @
+user028_dataid="Redwood-028";
+user028_serial=" ";
+user028_socserial=" ";
+user028_name=" ";
+user028_username="@";
+user028_devicecode="redwood";
+
+# redwood | @
+user029_dataid="Redwood-029";
+user029_serial=" ";
+user029_socserial=" ";
+user029_name=" ";
+user029_username="@";
+user029_devicecode="redwood";
+
+# redwood | @
+user030_dataid="Redwood-030";
+user030_serial=" ";
+user030_socserial=" ";
+user030_name=" ";
+user030_username="@";
+user030_devicecode="redwood";
+}
+
+# Database Index For Marble
+database_index_marble() {
+# marble | @umangpandya01
+user001_dataid="Marble-001";
+user001_serial="fce7a16d";
+user001_socserial="0x0000043b8a18a3e8";
+user001_name="Umang Pandya";
+user001_username="@umangpandya01";
+user001_devicecode="marble";
+
+# marble | @gourav_dharuhera
+user002_dataid="Marble-002";
+user002_serial="ff272296";
+user002_socserial="0x0000043bfd08e3ad";
+user002_name="Gourav Dharuhera";
+user002_username="@gourav_dharuhera";
+user002_devicecode="marble";
+
+# marble | @
+user003_dataid="Marble-003";
+user003_serial=" ";
+user003_socserial=" ";
+user003_name=" ";
+user003_username="@";
+user003_devicecode="marble";
+
+# marble | @
+user004_dataid="Marble-004";
+user004_serial=" ";
+user004_socserial=" ";
+user004_name=" ";
+user004_username="@";
+user004_devicecode="marble";
+
+# marble | @
+user005_dataid="Marble-005";
+user005_serial=" ";
+user005_socserial=" ";
+user005_name=" ";
+user005_username="@";
+user005_devicecode="marble";
+
+# marble | @
+user006_dataid="Marble-006";
+user006_serial=" ";
+user006_socserial=" ";
+user006_name=" ";
+user006_username="@";
+user006_devicecode="marble";
+
+# marble | @
+user007_dataid="Marble-007";
+user007_serial=" ";
+user007_socserial=" ";
+user007_name=" ";
+user007_username="@";
+user007_devicecode="marble";
+
+# marble | @
+user008_dataid="Marble-008";
+user008_serial=" ";
+user008_socserial=" ";
+user008_name=" ";
+user008_username="@";
+user008_devicecode="marble";
+
+# marble | @
+user009_dataid="Marble-009";
+user009_serial=" ";
+user009_socserial=" ";
+user009_name=" ";
+user009_username="@";
+user009_devicecode="marble";
+
+# marble | @
+user010_dataid="Marble-010";
+user010_serial=" ";
+user010_socserial=" ";
+user010_name=" ";
+user010_username="@";
+user010_devicecode="marble";
+
+# marble | @
+user011_dataid="Marble-011";
+user011_serial=" ";
+user011_socserial=" ";
+user011_name=" ";
+user011_username="@";
+user011_devicecode="marble";
+
+# marble | @
+user012_dataid="Marble-012";
+user012_serial=" ";
+user012_socserial=" ";
+user012_name=" ";
+user012_username="@";
+user012_devicecode="marble";
+
+# marble | @
+user013_dataid="Marble-013";
+user013_serial=" ";
+user013_socserial=" ";
+user013_name=" ";
+user013_username="@";
+user013_devicecode="marble";
+
+# marble | @
+user014_dataid="Marble-014";
+user014_serial=" ";
+user014_socserial=" ";
+user014_name=" ";
+user014_username="@";
+user014_devicecode="marble";
+
+# marble | @
+user015_dataid="Marble-015";
+user015_serial=" ";
+user015_socserial=" ";
+user015_name=" ";
+user015_username="@";
+user015_devicecode="marble";
+
+# marble | @
+user018_dataid="Marble-018";
+user018_serial=" ";
+user018_socserial=" ";
+user018_name=" ";
+user018_username="@";
+user018_devicecode="marble";
+
+# marble | @
+user019_dataid="Marble-019";
+user019_serial=" ";
+user019_socserial=" ";
+user019_name=" ";
+user019_username="@";
+user019_devicecode="marble";
+
+# marble | @
+user020_dataid="Marble-020";
+user020_serial=" ";
+user020_socserial=" ";
+user020_name=" ";
+user020_username="@";
+user020_devicecode="marble";
+
+# marble | @
+user021_dataid="Marble-021";
+user021_serial=" ";
+user021_socserial=" ";
+user021_name=" ";
+user021_username="@";
+user021_devicecode="marble";
+
+# marble | @
+user022_dataid="Marble-022";
+user022_serial=" ";
+user022_socserial=" ";
+user022_name=" ";
+user022_username="@";
+user022_devicecode="marble";
+
+# marble | @
+user023_dataid="Marble-023";
+user023_serial=" ";
+user023_socserial=" ";
+user023_name=" ";
+user023_username="@";
+user023_devicecode="marble";
+
+# marble | @
+user024_dataid="Marble-024";
+user024_serial=" ";
+user024_socserial=" ";
+user024_name=" ";
+user024_username="@";
+user024_devicecode="marble";
+
+# marble | @
+user025_dataid="Marble-025";
+user025_serial=" ";
+user025_socserial=" ";
+user025_name=" ";
+user025_username="@";
+user025_devicecode="marble";
+
+# marble | @
+user026_dataid="Marble-026";
+user026_serial=" ";
+user026_socserial=" ";
+user026_name=" ";
+user026_username="@";
+user026_devicecode="marble";
+
+# marble | @
+user027_dataid="Marble-027";
+user027_serial=" ";
+user027_socserial=" ";
+user027_name=" ";
+user027_username="@";
+user027_devicecode="marble";
+
+# marble | @
+user028_dataid="Marble-028";
+user028_serial=" ";
+user028_socserial=" ";
+user028_name=" ";
+user028_username="@";
+user028_devicecode="marble";
+
+# marble | @
+user029_dataid="Marble-029";
+user029_serial=" ";
+user029_socserial=" ";
+user029_name=" ";
+user029_username="@";
+user029_devicecode="marble";
+
+# marble | @
+user030_dataid="Marble-030";
+user030_serial=" ";
+user030_socserial=" ";
+user030_name=" ";
+user030_username="@";
+user030_devicecode="marble";
+}
+
+# Database Index For Sweet
+database_index_sweet() {
+# sweet | @
+user001_dataid="Sweet-001";
+user001_serial=" ";
+user001_socserial=" ";
+user001_name=" ";
+user001_username="@";
+user001_devicecode="sweet";
+
+# sweet | @
+user002_dataid="Sweet-002";
+user002_serial=" ";
+user002_socserial=" ";
+user002_name=" ";
+user002_username="@";
+user002_devicecode="sweet";
+
+# sweet | @
+user003_dataid="Sweet-003";
+user003_serial=" ";
+user003_socserial=" ";
+user003_name=" ";
+user003_username="@";
+user003_devicecode="sweet";
+
+# sweet | @
+user004_dataid="Sweet-004";
+user004_serial=" ";
+user004_socserial=" ";
+user004_name=" ";
+user004_username="@";
+user004_devicecode="sweet";
+
+# sweet | @
+user005_dataid="Sweet-005";
+user005_serial=" ";
+user005_socserial=" ";
+user005_name=" ";
+user005_username="@";
+user005_devicecode="sweet";
+
+# sweet | @
+user006_dataid="Sweet-006";
+user006_serial=" ";
+user006_socserial=" ";
+user006_name=" ";
+user006_username="@";
+user006_devicecode="sweet";
+
+# sweet | @
+user007_dataid="Sweet-007";
+user007_serial=" ";
+user007_socserial=" ";
+user007_name=" ";
+user007_username="@";
+user007_devicecode="sweet";
+
+# sweet | @
+user008_dataid="Sweet-008";
+user008_serial=" ";
+user008_socserial=" ";
+user008_name=" ";
+user008_username="@";
+user008_devicecode="sweet";
+
+# sweet | @
+user009_dataid="Sweet-009";
+user009_serial=" ";
+user009_socserial=" ";
+user009_name=" ";
+user009_username="@";
+user009_devicecode="sweet";
+
+# sweet | @
+user010_dataid="Sweet-010";
+user010_serial=" ";
+user010_socserial=" ";
+user010_name=" ";
+user010_username="@";
+user010_devicecode="sweet";
+
+# sweet | @
+user011_dataid="Sweet-011";
+user011_serial=" ";
+user011_socserial=" ";
+user011_name=" ";
+user011_username="@";
+user011_devicecode="sweet";
+
+# sweet | @
+user012_dataid="Sweet-012";
+user012_serial=" ";
+user012_socserial=" ";
+user012_name=" ";
+user012_username="@";
+user012_devicecode="sweet";
+
+# sweet | @
+user013_dataid="Sweet-013";
+user013_serial=" ";
+user013_socserial=" ";
+user013_name=" ";
+user013_username="@";
+user013_devicecode="sweet";
+
+# sweet | @
+user014_dataid="Sweet-014";
+user014_serial=" ";
+user014_socserial=" ";
+user014_name=" ";
+user014_username="@";
+user014_devicecode="sweet";
+
+# sweet | @
+user015_dataid="Sweet-015";
+user015_serial=" ";
+user015_socserial=" ";
+user015_name=" ";
+user015_username="@";
+user015_devicecode="sweet";
+
+# sweet | @
+user016_dataid="Sweet-016";
+user016_serial=" ";
+user016_socserial=" ";
+user016_name=" ";
+user016_username="@";
+user016_devicecode="sweet";
+
+# sweet | @
+user017_dataid="Sweet-017";
+user017_serial=" ";
+user017_socserial=" ";
+user017_name=" ";
+user017_username="@";
+user017_devicecode="sweet";
+
+# sweet | @
+user018_dataid="Sweet-018";
+user018_serial=" ";
+user018_socserial=" ";
+user018_name=" ";
+user018_username="@";
+user018_devicecode="sweet";
+
+# sweet | @
+user019_dataid="Sweet-019";
+user019_serial=" ";
+user019_socserial=" ";
+user019_name=" ";
+user019_username="@";
+user019_devicecode="sweet";
+
+# sweet | @
+user020_dataid="Sweet-020";
+user020_serial=" ";
+user020_socserial=" ";
+user020_name=" ";
+user020_username="@";
+user020_devicecode="sweet";
+
+# sweet | @
+user021_dataid="Sweet-021";
+user021_serial=" ";
+user021_socserial=" ";
+user021_name=" ";
+user021_username="@";
+user021_devicecode="sweet";
+
+# sweet | @
+user022_dataid="Sweet-022";
+user022_serial=" ";
+user022_socserial=" ";
+user022_name=" ";
+user022_username="@";
+user022_devicecode="sweet";
+
+# sweet | @
+user023_dataid="Sweet-023";
+user023_serial=" ";
+user023_socserial=" ";
+user023_name=" ";
+user023_username="@";
+user023_devicecode="sweet";
+
+# sweet | @
+user024_dataid="Sweet-024";
+user024_serial=" ";
+user024_socserial=" ";
+user024_name=" ";
+user024_username="@";
+user024_devicecode="sweet";
+
+# sweet | @
+user025_dataid="Sweet-025";
+user025_serial=" ";
+user025_socserial=" ";
+user025_name=" ";
+user025_username="@";
+user025_devicecode="sweet";
+
+# sweet | @
+user026_dataid="Sweet-026";
+user026_serial=" ";
+user026_socserial=" ";
+user026_name=" ";
+user026_username="@";
+user026_devicecode="sweet";
+
+# sweet | @
+user027_dataid="Sweet-027";
+user027_serial=" ";
+user027_socserial=" ";
+user027_name=" ";
+user027_username="@";
+user027_devicecode="sweet";
+
+# sweet | @
+user028_dataid="Sweet-028";
+user028_serial=" ";
+user028_socserial=" ";
+user028_name=" ";
+user028_username="@";
+user028_devicecode="sweet";
+
+# sweet | @
+user029_dataid="Sweet-029";
+user029_serial=" ";
+user029_socserial=" ";
+user029_name=" ";
+user029_username="@";
+user029_devicecode="sweet";
+
+# sweet | @
+user030_dataid="Sweet-030";
+user030_serial=" ";
+user030_socserial=" ";
+user030_name=" ";
+user030_username="@";
+user030_devicecode="sweet";
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX User Credentials Checker                  [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+# Check Serial Config For User 001
+check_serial_user001() {
+if [ "$TARGET_SERIAL" == "$user001_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user001_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 001
+check_socserial_user001() {
+if [ "$TARGET_SOC_SERIAL" == "$user001_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user001_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 001
+check_credentials_user_001() {
+check_serial_user001
+check_socserial_user001
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user001_name
+user_username=$user001_username
+user_devicecode=$user001_devicecode
+user_dataid=$user001_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_002
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 002
+check_serial_user002() {
+if [ "$TARGET_SERIAL" == "$user002_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user002_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 002
+check_socserial_user002() {
+if [ "$TARGET_SOC_SERIAL" == "$user002_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user002_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 002
+check_credentials_user_002() {
+check_serial_user002
+check_socserial_user002
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user002_name
+user_username=$user002_username
+user_devicecode=$user002_devicecode
+user_dataid=$user002_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_003
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 003
+check_serial_user003() {
+if [ "$TARGET_SERIAL" == "$user003_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user003_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 003
+check_socserial_user003() {
+if [ "$TARGET_SOC_SERIAL" == "$user003_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user003_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 003
+check_credentials_user_003() {
+check_serial_user003
+check_socserial_user003
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user003_name
+user_username=$user003_username
+user_devicecode=$user003_devicecode
+user_dataid=$user003_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_004
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 004
+check_serial_user004() {
+if [ "$TARGET_SERIAL" == "$user004_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user004_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 004
+check_socserial_user004() {
+if [ "$TARGET_SOC_SERIAL" == "$user004_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user004_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 004
+check_credentials_user_004() {
+check_serial_user004
+check_socserial_user004
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user004_name
+user_username=$user004_username
+user_devicecode=$user004_devicecode
+user_dataid=$user004_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_005
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 005
+check_serial_user005() {
+if [ "$TARGET_SERIAL" == "$user005_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user005_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 005
+check_socserial_user005() {
+if [ "$TARGET_SOC_SERIAL" == "$user005_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user005_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 005
+check_credentials_user_005() {
+check_serial_user005
+check_socserial_user005
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user005_name
+user_username=$user005_username
+user_devicecode=$user005_devicecode
+user_dataid=$user005_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_006
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 006
+check_serial_user006() {
+if [ "$TARGET_SERIAL" == "$user006_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user006_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 006
+check_socserial_user006() {
+if [ "$TARGET_SOC_SERIAL" == "$user006_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user006_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 006
+check_credentials_user_006() {
+check_serial_user006
+check_socserial_user006
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user006_name
+user_username=$user006_username
+user_devicecode=$user006_devicecode
+user_dataid=$user006_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_007
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 007
+check_serial_user007() {
+if [ "$TARGET_SERIAL" == "$user007_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user007_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 007
+check_socserial_user007() {
+if [ "$TARGET_SOC_SERIAL" == "$user007_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user007_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 007
+check_credentials_user_007() {
+check_serial_user007
+check_socserial_user007
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user007_name
+user_username=$user007_username
+user_devicecode=$user007_devicecode
+user_dataid=$user007_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_008
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 008
+check_serial_user008() {
+if [ "$TARGET_SERIAL" == "$user008_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user008_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 008
+check_socserial_user008() {
+if [ "$TARGET_SOC_SERIAL" == "$user008_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user008_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 008
+check_credentials_user_008() {
+check_serial_user008
+check_socserial_user008
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user008_name
+user_username=$user008_username
+user_devicecode=$user008_devicecode
+user_dataid=$user008_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_009
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 009
+check_serial_user009() {
+if [ "$TARGET_SERIAL" == "$user009_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user009_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 009
+check_socserial_user009() {
+if [ "$TARGET_SOC_SERIAL" == "$user009_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user009_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 009
+check_credentials_user_009() {
+check_serial_user009
+check_socserial_user009
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user009_name
+user_username=$user009_username
+user_devicecode=$user009_devicecode
+user_dataid=$user009_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_010
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 010
+check_serial_user010() {
+if [ "$TARGET_SERIAL" == "$user010_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user010_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 010
+check_socserial_user010() {
+if [ "$TARGET_SOC_SERIAL" == "$user010_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user010_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 010
+check_credentials_user_010() {
+check_serial_user010
+check_socserial_user010
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user010_name
+user_username=$user010_username
+user_devicecode=$user010_devicecode
+user_dataid=$user010_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_011
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 011
+check_serial_user011() {
+if [ "$TARGET_SERIAL" == "$user011_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user011_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 011
+check_socserial_user011() {
+if [ "$TARGET_SOC_SERIAL" == "$user011_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user011_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 011
+check_credentials_user_011() {
+check_serial_user011
+check_socserial_user011
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user011_name
+user_username=$user011_username
+user_devicecode=$user011_devicecode
+user_dataid=$user011_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_012
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 012
+check_serial_user012() {
+if [ "$TARGET_SERIAL" == "$user012_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user012_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 012
+check_socserial_user012() {
+if [ "$TARGET_SOC_SERIAL" == "$user012_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user012_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 012
+check_credentials_user_012() {
+check_serial_user012
+check_socserial_user012
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user012_name
+user_username=$user012_username
+user_devicecode=$user012_devicecode
+user_dataid=$user012_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_013
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 013
+check_serial_user013() {
+if [ "$TARGET_SERIAL" == "$user013_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user013_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 013
+check_socserial_user013() {
+if [ "$TARGET_SOC_SERIAL" == "$user013_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user013_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 013
+check_credentials_user_013() {
+check_serial_user013
+check_socserial_user013
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user013_name
+user_username=$user013_username
+user_devicecode=$user013_devicecode
+user_dataid=$user013_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_014
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 014
+check_serial_user014() {
+if [ "$TARGET_SERIAL" == "$user014_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user014_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 014
+check_socserial_user014() {
+if [ "$TARGET_SOC_SERIAL" == "$user014_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user014_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 014
+check_credentials_user_014() {
+check_serial_user014
+check_socserial_user014
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user014_name
+user_username=$user014_username
+user_devicecode=$user014_devicecode
+user_dataid=$user014_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_015
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 015
+check_serial_user015() {
+if [ "$TARGET_SERIAL" == "$user015_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user015_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 015
+check_socserial_user015() {
+if [ "$TARGET_SOC_SERIAL" == "$user015_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user015_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 015
+check_credentials_user_015() {
+check_serial_user015
+check_socserial_user015
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user015_name
+user_username=$user015_username
+user_devicecode=$user015_devicecode
+user_dataid=$user015_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_016
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 016
+check_serial_user016() {
+if [ "$TARGET_SERIAL" == "$user016_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user016_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 016
+check_socserial_user016() {
+if [ "$TARGET_SOC_SERIAL" == "$user016_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user016_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 016
+check_credentials_user_016() {
+check_serial_user016
+check_socserial_user016
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user016_name
+user_username=$user016_username
+user_devicecode=$user016_devicecode
+user_dataid=$user016_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_017
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 017
+check_serial_user017() {
+if [ "$TARGET_SERIAL" == "$user017_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user017_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 017
+check_socserial_user017() {
+if [ "$TARGET_SOC_SERIAL" == "$user017_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user017_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 017
+check_credentials_user_017() {
+check_serial_user017
+check_socserial_user017
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user017_name
+user_username=$user017_username
+user_devicecode=$user017_devicecode
+user_dataid=$user017_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_018
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 018
+check_serial_user018() {
+if [ "$TARGET_SERIAL" == "$user018_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user018_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 018
+check_socserial_user018() {
+if [ "$TARGET_SOC_SERIAL" == "$user018_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user018_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 018
+check_credentials_user_018() {
+check_serial_user018
+check_socserial_user018
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user018_name
+user_username=$user018_username
+user_devicecode=$user018_devicecode
+user_dataid=$user018_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_019
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 019
+check_serial_user019() {
+if [ "$TARGET_SERIAL" == "$user019_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user019_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 019
+check_socserial_user019() {
+if [ "$TARGET_SOC_SERIAL" == "$user019_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user019_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 019
+check_credentials_user_019() {
+check_serial_user019
+check_socserial_user019
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user019_name
+user_username=$user019_username
+user_devicecode=$user019_devicecode
+user_dataid=$user019_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_020
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 020
+check_serial_user020() {
+if [ "$TARGET_SERIAL" == "$user020_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user020_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 020
+check_socserial_user020() {
+if [ "$TARGET_SOC_SERIAL" == "$user020_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user020_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 020
+check_credentials_user_020() {
+check_serial_user020
+check_socserial_user020
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user020_name
+user_username=$user020_username
+user_devicecode=$user020_devicecode
+user_dataid=$user020_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_021
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 021
+check_serial_user021() {
+if [ "$TARGET_SERIAL" == "$user021_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user021_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 021
+check_socserial_user021() {
+if [ "$TARGET_SOC_SERIAL" == "$user021_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user021_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 021
+check_credentials_user_021() {
+check_serial_user021
+check_socserial_user021
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user021_name
+user_username=$user021_username
+user_devicecode=$user021_devicecode
+user_dataid=$user021_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_022
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 022
+check_serial_user022() {
+if [ "$TARGET_SERIAL" == "$user022_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user022_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 022
+check_socserial_user022() {
+if [ "$TARGET_SOC_SERIAL" == "$user022_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user022_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 022
+check_credentials_user_022() {
+check_serial_user022
+check_socserial_user022
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user022_name
+user_username=$user022_username
+user_devicecode=$user022_devicecode
+user_dataid=$user022_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_023
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 023
+check_serial_user023() {
+if [ "$TARGET_SERIAL" == "$user023_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user023_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 023
+check_socserial_user023() {
+if [ "$TARGET_SOC_SERIAL" == "$user023_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user023_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 023
+check_credentials_user_023() {
+check_serial_user023
+check_socserial_user023
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user023_name
+user_username=$user023_username
+user_devicecode=$user023_devicecode
+user_dataid=$user023_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_024
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 024
+check_serial_user024() {
+if [ "$TARGET_SERIAL" == "$user024_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user024_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 024
+check_socserial_user024() {
+if [ "$TARGET_SOC_SERIAL" == "$user024_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user024_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 024
+check_credentials_user_024() {
+check_serial_user024
+check_socserial_user024
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user024_name
+user_username=$user024_username
+user_devicecode=$user024_devicecode
+user_dataid=$user024_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_025
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 025
+check_serial_user025() {
+if [ "$TARGET_SERIAL" == "$user025_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user025_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 025
+check_socserial_user025() {
+if [ "$TARGET_SOC_SERIAL" == "$user025_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user025_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 025
+check_credentials_user_025() {
+check_serial_user025
+check_socserial_user025
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user025_name
+user_username=$user025_username
+user_devicecode=$user025_devicecode
+user_dataid=$user025_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_026
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 026
+check_serial_user026() {
+if [ "$TARGET_SERIAL" == "$user026_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user026_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 026
+check_socserial_user026() {
+if [ "$TARGET_SOC_SERIAL" == "$user026_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user026_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 026
+check_credentials_user_026() {
+check_serial_user026
+check_socserial_user026
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user026_name
+user_username=$user026_username
+user_devicecode=$user026_devicecode
+user_dataid=$user026_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_027
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 027
+check_serial_user027() {
+if [ "$TARGET_SERIAL" == "$user027_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user027_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 027
+check_socserial_user027() {
+if [ "$TARGET_SOC_SERIAL" == "$user027_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user027_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 027
+check_credentials_user_027() {
+check_serial_user027
+check_socserial_user027
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user027_name
+user_username=$user027_username
+user_devicecode=$user027_devicecode
+user_dataid=$user027_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_028
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 028
+check_serial_user028() {
+if [ "$TARGET_SERIAL" == "$user028_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user028_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 028
+check_socserial_user028() {
+if [ "$TARGET_SOC_SERIAL" == "$user028_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user028_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 028
+check_credentials_user_028() {
+check_serial_user028
+check_socserial_user028
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user028_name
+user_username=$user028_username
+user_devicecode=$user028_devicecode
+user_dataid=$user028_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_029
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 029
+check_serial_user029() {
+if [ "$TARGET_SERIAL" == "$user029_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user029_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 029
+check_socserial_user029() {
+if [ "$TARGET_SOC_SERIAL" == "$user029_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user029_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 029
+check_credentials_user_029() {
+check_serial_user029
+check_socserial_user029
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user029_name
+user_username=$user029_username
+user_devicecode=$user029_devicecode
+user_dataid=$user029_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+check_credentials_user_030
+fi
+fi
+fi
+fi
+}
+
+# Check Serial Config For User 030
+check_serial_user030() {
+if [ "$TARGET_SERIAL" == "$user030_serial" ]; then
+rm -f /tmp/CryptX/user_serial_unverified
+user_serial=$user030_serial
+serial_score=1;
+else
+rm -f /tmp/CryptX/user_serial_verified
+user_serial=" - null!";
+serial_score=0;
+fi
+}
+
+# Check SOC Serial Config For User 030
+check_socserial_user030() {
+if [ "$TARGET_SOC_SERIAL" == "$user030_socserial" ]; then
+rm -f /tmp/CryptX/user_soc_serial_unverified
+user_socserial=$user030_socserial
+socserial_score=1;
+else
+rm -f /tmp/CryptX/user_soc_serial_verified
+user_socserial=" - null!";
+socserial_score=0;
+fi
+}
+
+# Check Credentials Config For User 030
+check_credentials_user_030() {
+check_serial_user030
+check_socserial_user030
+
+if [ $serial_score = 1 ] && [ $socserial_score = 1 ]; then
+user_name=$user030_name
+user_username=$user030_username
+user_devicecode=$user030_devicecode
+user_dataid=$user030_dataid
+safety_mode_triggered=0;
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 1 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 1 ] && [ $socserial_score = 0 ]; then
+ui_print " - Safety Mode Has Been Triggered Successfully! ";
+module_activate_safety_mode
+safety_mode_triggered=1;
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+else
+if [ $serial_score = 0 ] && [ $socserial_score = 0 ]; then
+user_name=" - null!";
+user_username=" - null!";
+user_devicecode=" - null!";
+user_dataid=" - null!";
+safety_mode_triggered=2;
+
+ui_print " - ALERT:                                       ";
+ui_print " > Failed To Fetch User Data From Server(s)!    ";
+ui_print "   Register/Purchase ROM Before Flashing It...  ";
+ui_print "   If You Don't Wish To End Up Hard-Bricking    ";
+ui_print "   Your Device.                                 ";
+sleep 5;
+abort_status=1;
+abort_reason=" - Failed To Fetch User Data From Server!";
+abort;
+fi
+fi
+fi
+fi
+}
+
+# -------------------------------------------------------------------
+# Main User Flashing Activity                                        
+# -------------------------------------------------------------------
+
+ui_print " ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " CryptX Activator [Plus]                        ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " Maintainer: @itsD3XT3R07                       ";
+sleep 0.2;
+ui_print " Variant   : $CryptX_ACTIVATOR_VARIANT          ";
+sleep 0.2;
+ui_print " Version   : $CryptX_ACTIVATOR_VERSION          ";
+sleep 0.2;
+ui_print " Updated   : On $MOD_DATE At $MOD_TIME          ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " - Getting information...                       ";
+sleep 5;
+ui_print " - Setting up environment...                    ";
+sleep 5;
+ui_print " ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " - Unpacking setup files...                     ";
+sleep 0.2;
+unpack_package_files;
+sleep 0.2;
+setup_busybox_services;
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+begin_mounting;
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " - Your Device Statistics:                      ";
+ui_print " > $TARGET_DEVICE | $TARGET_BRAND $TARGET_MODEL ";
+sleep 0.2;
+ui_print " ";
+ui_print " - Current Device Information:                  ";
+sleep 1;
+check_device_type
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+if [ $CryptXModule_ACTIVATE_CRS = 1 ]; then
+module_setup_crs;
+sleep 3;
+fi
+if [ $CryptXModule_ACTIVATE_VKS = 1 ]; then
+module_setup_vks
+sleep 1;
+fi
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+ui_print " - Activating User Session...                   ";
+sleep 0.2;
+check_device_model;
+check_user_credentials;
+sleep 0.2;
+ui_print " > Done!                                        ";
+sleep 0.2;
+ui_print " ";
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+begin_unmounting;
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " - This Activator Only Works With:              ";
+sleep 0.2;
+ui_print " > $ROM_DEV | $ROM_NAME $ROM_VER $ROM_VAR       ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " - Activator Services Have Been Completed!      ";
+sleep 0.2;
+ui_print " > Check Out Logs At CryptX.log                 ";
+ui_print " > Head To /data/media/0/CryptX/CryptX.log      ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " - After Checking Logs Re-flash Activator       ";
+ui_print "   Then Proceed To Flash The ROM!               ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " - Make Sure To Join Our Channel For More Info: ";
+sleep 0.2;
+ui_print " > https://t.me/CryptXSecurity                  ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " $dc56$SEC_NID";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " $dc56$SEX_DEV";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " $dc56$ROM_NAME";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Activate & Record CryptX Flashing Logs              [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+activate_cryptx_logs;
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Exit Flashing Now
+# -------------------------------------------------------------------
+
+exit 0
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Description : CryptX
+# Author      : @lakshkukreja (GitHub)
+# Date        : 05 May 2024
+# Device      : Universal
+# Model       : Universal
+# License     : GPL-3.0-or-later (SPDX)
+# Copyright   : (CC) 2024 CryptX Service(s)
+# -------------------------------------------------------------------
