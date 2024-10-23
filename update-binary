@@ -1,0 +1,1112 @@
+#!/sbin/sh
+
+# -------------------------------------------------------------------
+# Description: CryptX [Lite] Binary Source Code
+# Author     : @AstroDEV63
+# Date       : 17 June 2024
+# Device     : Universal
+# Model      : Universal
+# License    : GPL-3.0-or-later (SPDX)
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# (CC) Copyright Information
+# -------------------------------------------------------------------
+#
+#  [?] CryptX Service(s) Or Any Builds Under "CryptX" Officially 
+#      Released By @AstroDEV63 (GitHub / Telegram) Are Genuinely  
+#      Owned And Can Be Claimed Legally Freely Or Under Some Amounts  
+#      If The Build Is Paid. Any Other Sources Or Proclaimed Unoffical  
+#      Builds Are Not Linked To Us!
+#
+#  [?] CX Submodules ~ Is Part Of CryptX Service(s) And Will Be Only 
+#      Officially Included In Our Released build Only!
+#
+#  [?] CryptX Services Binary & Main Source Code Files Shall Always 
+#      Remain Private To Ensure Any Unauthourised Or Mis-use Of Our 
+#      Codes.
+#
+#  [?] CryptX Recovery Build(s) Shall Be Based On Any Pre-existing
+#      & Reputed Recovery Projects. Recovery Projects May Vary 
+#      According To Device Specifications... We Also Ensure To 
+#      Modify Official Stable Builds Only For The Mentioned Projects.
+#
+#      Our Team Prefers The Below Listed Recovery Projects Only:     
+#      >> TWRP - Team Win Recovery Project
+#      >> OFOX - Orange Fox Recovery Project
+#      >> PBRP - Pitch Black Recovery Project
+#      >> SHRP - Sky Hawk Recovery Project
+#
+#      If Any Particular Recovery Used By Us Will Be Properly 
+#      Been Provided Credits...
+#      Our Recovery Mod(s) Only Add Certain Security Layer(s)
+#      To Make Sure Best Possible Flashing!
+#
+#  [?] CryptX Recovery Builds Will Have Flashing Restrictions On Even
+#      The Variant & Version Being Used While Flashing Our Stuff.
+#      Our UI/UX Mod Stuff Will Remain Constant & The Incremental 
+#      Versions For The Builds Will Be Only Provided Until Needed.
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Define Basic Prop Variables                         [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+# the target device(s)
+TARGET_DEVICE=$(getprop ro.product.system.device 2>/dev/null);
+
+# the target model(s)
+TARGET_MODEL=$(getprop ro.product.system.model 2>/dev/null);
+
+# the target slot(s)
+TARGET_SLOT=$(getprop ro.boot.slot_suffix 2>/dev/null);
+
+# the target serial(s)
+TARGET_SERIAL=$(getprop ro.serialno 2>/dev/null);
+
+# the target SOC serial(s)
+TARGET_SOC_SERIAL=$(cat /sys/devices/soc0/serial_number)
+
+# the target device manufacturer brand(s)
+TARGET_BRAND=$(getprop ro.product.system.brand 2>/dev/null);
+
+# the target device a/b slot type(s)
+TARGET_DEVICE_SLOT=$(getprop ro.build.ab_update 2>/dev/null);
+
+# the current device dynamic partition status type(s)
+TARGET_DEVICE_TYPE=$(getprop ro.boot.dynamic_partitions)
+
+# the current MOD recovery prop(s)
+CryptX_Recovery_Version=$(getprop ro.CryptX.Version 2>/dev/null);
+CryptX_Recovery_VerCode=$(getprop ro.CryptX.VersionCode 2>/dev/null);
+CryptX_Recovery_Variant=$(getprop ro.CryptX.Variant 2>/dev/null);
+CryptX_Recovery_BStatus=$(getprop ro.CryptX.Status 2>/dev/null);
+CryptX_Recovery_BIDInfo=$(getprop ro.CryptX.BuildDate 2>/dev/null);
+
+CXRVC=$CryptX_Recovery_VerCode
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Control Panel: Master Toggles 
+# -------------------------------------------------------------------
+
+# CryptX Module: Volume Key Selector
+CryptXModule_ACTIVATE_VKS=0; 
+
+# CryptX Module: CryptX Recovery Support
+CryptXModule_ACTIVATE_CRS=0;
+
+# CryptX Module: Anti-Fiddling Mode
+CryptXModule_ACTIVATE_AFM=0;
+
+# CryptX Module: Disable Logs For CryptX Service(s)
+CryptXModule_ACTIVATE_DLS=0;
+
+# CryptX Module: Shuffle Device Confidential Details In Logs
+CryptXModule_ACTIVATE_USD=0;
+
+# CrptX Module: Set A TimeBomb Limit | File Won't Flash After A Specific Amount Of Time
+CryptXModule_ACTIVATE_CTS=1;
+
+# CryptX Module: Set Package ID Amongst Other(s) | MAX ID LIMIT IS SET TO 10
+CryptXModule_PackageID=01;
+
+# CryptX Module: Restrict Flashing Count On Fiddling
+CryptXModule_ACTIVATE_GWS=1;
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Load CryptX Flashing Variables
+# -------------------------------------------------------------------
+
+# Slot Prop(s)
+ACTIVE_SLOT=" "; # <-- DO NOT FIDDLE THIS PROP
+INACTIVE_SLOT=" "; # <-- DO NOT FIDDLE THIS PROP
+
+# Device Type Prop(s)
+device_dynamic=0; # <-- DO NOT FIDDLE THIS PROP
+
+# CryptX Flashing Security Backup Module(s)
+SET_PERMISSION_END=0; # <-- DO NOT FIDDLE THIS PROP 
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Deploy General Functions For Flashing               [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+# The display screen
+OUTFD=/proc/self/fd/$2
+
+# The current zip installer
+ZIPFILE="$3"
+
+# Print message while flashing
+ui_print() {
+  echo -e "ui_print $1\nui_print" >>$OUTFD
+}
+
+# Package extract source file
+package_extract_sourcefile() {
+# ui_print " - Flashing $(echo $1 | awk -F "/" '{print $NF}')...";
+unzip -p "$ZIPFILE" $1 >$2
+}
+
+# Package extract (tar.xz) file
+package_extract_taxz() {
+unzip -p "$ZIPFILE" $1 | tar xJ -C >$2
+}
+
+# CryptX Flashing Restrictor
+FLASHING_WARN_COUNT=0;
+
+generate_warning() {
+ui_print " - Verifying Flashing Parameters...             ";
+if [ -x /tmp/WARNING/restrict_flashing ]; then
+if [ -x /tmp/WARNING/flash_count.sh ]; then
+chmod 755 /tmp/WARNING/flash_count.sh
+. /tmp/WARNING/flash_count.sh
+FLASHING_WARN_COUNT=$FLASHING_COUNT;
+if [ "$FLASHING_WARN_COUNT" == "1" ]; then
+ui_print " - Flashing Count: 1/3                          ";
+rm -rf /tmp/WARNING/flash_count.sh
+echo "#!/sbin/sh" >> /tmp/WARNING/flash_count.sh
+echo "FLASHING_COUNT=2" >> /tmp/WARNING/flash_count.sh
+else
+if [ "$FLASHING_WARN_COUNT" == "2" ]; then
+rm -rf /tmp/WARNING/flash_count.sh
+echo "#!/sbin/sh" >> /tmp/WARNING/flash_count.sh
+echo "FLASHING_COUNT=3" >> /tmp/WARNING/flash_count.sh
+else
+if [ "$FLASHING_WARN_COUNT" == "3" ]; then
+ui_print " - Flashing Count: 3/3                          ";
+ui_print " > Your Device Has Been Temporarily Been Banned ";
+ui_print "   From Flashing. Please Consider Flashing After";
+ui_print "   Rebooting Your Device.                       ";
+rm -rf /tmp/WARNING/flash_count.sh
+mkdir -p /tmp/WARNING/restrict_flashing
+else
+ui_print " - Flashing Count: 0/3                          ";
+mkdir -p /tmp/WARNING/flash_count.sh
+chmod 755 /tmp/WARNING/flash_count.sh
+echo "#!/sbin/sh" >> /tmp/WARNING/flash_count.sh
+echo "FLASHING_COUNT=1" >> /tmp/WARNING/flash_count.sh
+fi
+fi
+fi
+fi
+else
+abort;
+fi
+
+}
+
+# Package Extract File - dummy
+display_error() {
+ui_print " - console: CryptX [Lite] Service(s) Have Been  ";
+ui_print "            Broken!                             ";
+ui_print "            ER:'setup_flashing_environment'     ";
+ui_print "               service was forcefully killed or ";
+ui_print "               not executed...                  ";
+ui_print "                                 #CryptX [Lite] ";
+ui_print " ";
+generate_warning;
+ui_print " ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+exit 0;
+}
+
+# Package Extract File - dummy
+package_extract_file() {
+display_error;
+}
+
+# Package extract (.gz) file
+package_extract_pigz() {
+display_error;
+}
+
+# Package extract (.zst) file
+package_extract_zstd() {
+display_error;
+}
+
+# Print message from another file while flashing
+ui_printfile() {
+  local line losrpad;
+  $BOOTMODE || [ -e /twres ] || losrpad='| '; # work around LOS Recovery eating leading whitespace
+  while IFS='' read -r line || [[ -n "$line" ]]; do
+    ui_print "$losrpad$line";
+  done < $1;
+}
+
+# Show progress bar while flashing
+show_progress() { 
+echo "progress $1 $2" >> /proc/self/fd/$OUTFD;
+}
+
+# Getprop config
+file_getprop() { 
+grep "^$2=" "$1" | tail -n1 | cut -d= -f2-;
+}
+
+# Activate (.zst) flashing services
+bin=/tmp/bin/android
+if [ -d $bin ]; then
+  rm -rf $bin
+fi
+mkdir -p $bin
+package_extract_sourcefile "CryptX/tools/zstd" "/tmp/bin/zstd"
+chmod -R 0777 $bin
+chmod 755 /tmp/bin/zstd
+
+# Copy file from one directory to another
+copyfile() {
+if [ -f "$1" ]; then
+mkdir -p "$(dirname "$2")"
+cp -f "$1" "$2"
+fi
+}
+
+# Animate Symmetrically Flashing By Sleeping
+pause_flashing_fast() {
+sleep 0.2;
+}
+
+# Print Project Name (Header)
+display_project_name() {
+ui_print " $MOD_PROJECTNAME";
+}
+
+# Print Project Maintainer (Header)
+display_project_maintainer() {
+ui_print " Maintainer   : $MOD_MAINTAINER";
+}
+
+# Print Project Version (Header)
+display_project_version() {
+ui_print " Version      : $MOD_VERSION";
+}
+
+# Print Project Released On (Header)
+display_project_releasedon() {
+ui_print " Released     : On $MOD_DATE At $MOD_TIME";
+}
+
+# Print Project Release Code (Header)
+display_project_releasecode() {
+ui_print " Release Code : $MOD_RELEASECODE";
+}
+
+# Print Project Device (Header)
+display_project_device() {
+ui_print " Device       : $MOD_DEVICENAME";
+}
+
+# Print Project Model (Header)
+display_project_model() {
+ui_print " Model        : $MOD_MODELNAME";
+}
+
+# Print CryptX Project Details (Header)
+display_cryptx_information() {
+CX_MOD_VERSION="V1.0.2";
+CX_MOD_MAINTAINER="@itsD3XT3R07";
+CX_MOD="CryptX [Lite]";
+ui_print "------------------------------------------------";
+ui_print " $CX_MOD $CX_MOD_VERSION By $CX_MOD_MAINTAINER  ";
+ui_print "------------------------------------------------";
+}
+ 
+# Print Project Details (Header)
+display_project_details() {
+ui_print " ";
+ui_print "------------------------------------------------";
+sleep 0.1;
+display_project_banner;
+sleep 0.1;
+ui_print "------------------------------------------------";
+sleep 0.2;
+display_project_name;
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+display_project_maintainer;
+sleep 0.2;
+display_project_version;
+sleep 0.2;
+display_project_releasecode;
+sleep 0.2;
+display_project_device;
+sleep 0.2;
+display_project_model;
+sleep 0.2;
+display_project_releasedon;
+sleep 0.2;
+display_cryptx_information;
+sleep 0.2;
+ui_print " ";
+}
+
+# Abort flashing procedure
+abort() {
+ui_print " ";
+ui_print " - console: Error!                              ";
+ui_print " - console: Aborting Flasher...                 ";
+ui_print " ";
+ui_print "------------------------------------------------";
+ui_print " ";
+ui_print " ";
+ui_print " ";
+# cleanup;
+exit 0
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Backend Services                          [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+BOOTMODE=false;
+ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true;
+$BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMODE=true;
+
+DIR=/sdcard;
+$BOOTMODE || DIR=$(dirname "$ZIPFILE");
+[ $DIR == "/sideload" ] && DIR=/tmp;
+
+[ -d /postinstall/tmp ] && POSTINSTALL=/postinstall;
+[ "$CXHOME" ] || export CXHOME=$POSTINSTALL/tmp/CryptX;
+[ "$ANDROID_ROOT" ] || ANDROID_ROOT=/system;
+
+# Delete TMP Package Directory
+rm -rf /tmp/CryptX
+# Create TMP Package Directory
+mkdir -p /tmp/CryptX
+
+debugging() {
+local debug log path;
+case $(basename "$ZIPFILE" .zip) in
+*-debugging) debug=1;;
+esac;
+for path in /tmp /cache /metadata /persist; do
+[ -f $path/.ak3-debugging ] && debug=1;
+done;
+if [ "$debug" ]; then
+ui_print " - Creating debugging archive in $DIR           ";
+[ -f /tmp/recovery.log ] && log=/tmp/recovery.log;
+tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $CXHOME $log;
+fi;
+}
+
+cleanup() {
+  rm -rf /tmp/CryptX
+}
+
+int2ver() {
+if [ "$1" -eq "$1" ] 2>/dev/null; then
+echo "$1.0.0";
+elif [ ! "$(echo "$1" | cut -d. -f3)" ]; then
+echo "$1.0";
+else
+echo "$1";
+fi;
+}
+
+dump_moduleinfo() {
+cat <<EOF > $1;
+id=CryptX-helper
+name=CryptX Helper Module
+version=$(awk '{ print $3 }' $AKHOME/vertmp) $(grep -oE '#.[0-9]' $AKHOME/vertmp)
+versionCode=1
+author=@itsD3XT3R07
+description=$KERNEL_STRING
+EOF
+}
+dump_moduleremover() {
+cat <<'EOF' > $1;
+#!/system/bin/sh
+MODDIR=${0%/*};
+if [ "$(cat /proc/version)" != "$(cat $MODDIR/version)" ]; then
+  rm -rf $MODDIR;
+  exit;
+fi;
+rm -f $MODDIR/update;
+. $MODDIR/post-fs-data.2.sh;
+EOF
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Setup Busybox Services                              [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+setup_busybox_services() {
+$BOOTMODE && return
+MAGISKTMP=/sbin/.magisk
+MAGISKBIN=/data/adb/magisk
+[ -z "$TMPDIR" ] && TMPDIR=/dev/tmp
+ui_print " - Setting up busybox core components...        ";
+if [ -x "$MAGISKTMP"/busybox/busybox ]; then
+BB=$MAGISKTMP/busybox/busybox
+[ -z "$BBDIR" ] && BBDIR=$MAGISKTMP/busybox
+ui_print " - Busybox Setup Completed!                     ";
+# ui_print " - Busybox exists at $BB                        ";
+elif [ -x $TMPDIR/bin/busybox ]; then
+BB=$TMPDIR/bin/busybox
+ui_print " - Busybox Setup Completed!                     ";
+# ui_print " - Busybox exists at $BB                        ";
+[ -z "$BBDIR" ] && BBDIR=$TMPDIR/bin
+# we already went through the installation process, if we are here, that means busybox is installed so return!
+return
+else
+# Construct the PATH
+[ -z $BBDIR ] && BBDIR=$TMPDIR/bin
+mkdir -p $BBDIR
+if [ -x $MAGISKBIN/busybox ]; then
+BBInstaller=$MAGISKBIN/busybox
+ui_print " - Busybox Setup Completed!                     ";
+# ui_print " - Busybox exists at $BBInstaller               ";
+elif [ -f "$BBDIR/busybox" ]; then
+BBInstaller=$BBDIR/busybox
+ui_print " - Busybox Setup Completed!                     ";
+# ui_print " - Busybox exists at $BBInstaller               ";
+else
+ui_print " - Unpacking Busybox files...                   ";
+BBInstaller=/tmp/CryptX/busybox
+fi
+ln -s "$BBInstaller" $BBDIR/busybox
+$BBInstaller --install -s $BBDIR
+if [ $? != 0 ] || [ -z "$(ls $BBDIR)" ]; then
+ui_print " - Busybox Setup Failed!                        ";
+abort_status=1
+abort_reason="Busybox Setup Failed!!";
+abort;
+else
+ls $BBDIR > "$busyboxLog"
+fi
+BB=$BBDIR/busybox
+ui_print " - Busybox Setup Completed!                     ";
+fi
+version=$($BB | head -1)
+[ -z "$version" ] && version=$(busybox | head -1) && BB=busybox
+[ -z "$version" ] && abort_status=1 && abort_reason="- Cannot find busybox, Installation Failed!" && abort
+echo "$PATH" | grep -q "^$BBDIR" || export PATH=$BBDIR:$PATH
+} 
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Package Setup Services                    [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+# Extract Source Files
+package_extract_sourcefile "CryptX/tools/busybox" "/tmp/CryptX/busybox"
+package_extract_sourcefile "CryptX/tools/fec" "/tmp/CryptX/fec"
+package_extract_sourcefile "CryptX/tools/httools_static" "/tmp/CryptX/httools_static"
+package_extract_sourcefile "CryptX/tools/lptools_static" "/tmp/CryptX/lptools_static"
+package_extract_sourcefile "CryptX/tools/magiskboot" "/tmp/CryptX/magiskboot"
+package_extract_sourcefile "CryptX/tools/magiskpolicy" "/tmp/CryptX/magiskpolicy"
+package_extract_sourcefile "CryptX/tools/snapshotupdater_static" "/tmp/CryptX/snapshotupdater_static"
+package_extract_sourcefile "META-INF/com/google/android/cryptx-flasher" "/tmp/CryptX/cryptx-flasher"
+package_extract_sourcefile "CryptX/tools/CryptX.sh" "/tmp/CryptX/CryptX.sh"
+package_extract_sourcefile "changelog.txt" "/tmp/CryptX/changelog.txt"
+package_extract_sourcefile "zip_name.txt" "/tmp/CryptX/zip_name.txt"
+package_extract_sourcefile "CryptX/device_config/device_info" "/tmp/CryptX/device_info"
+package_extract_sourcefile "CryptX/COPYRIGHT" "/tmp/CryptX/COPYRIGHT"
+package_extract_sourcefile "CryptX/keycheck" "/tmp/CryptX/keycheck"
+
+
+# Provide Permission To Source Files
+chmod 755 /tmp/CryptX/busybox
+chmod 755 /tmp/CryptX/fec
+chmod 755 /tmp/CryptX/httools_static
+chmod 755 /tmp/CryptX/lptools_static
+chmod 755 /tmp/CryptX/magiskboot
+chmod 755 /tmp/CryptX/magiskpolicy
+chmod 755 /tmp/CryptX/snapshotupdater_static
+chmod 755 /tmp/CryptX/cryptx-flasher
+chmod 755 /tmp/CryptX/CryptX.sh
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX SubModules
+# -------------------------------------------------------------------
+
+# Device Is Dynamic Or Not Config
+check_device_type() {
+[ -z "$TARGET_DEVICE_TYPE" ] && TARGET_DEVICE_TYPE="false"
+BLK_PATH=/dev/block/bootdevice/by-name
+if [ -d /dev/block/mapper ]; then
+TARGET_DEVICE_TYPE="true"
+BLK_PATH="/dev/block/mapper"
+
+if [ "$TARGET_SLOT" = "_a" ]; then
+ACTIVE_SLOT="_a";
+INACTIVE_SLOT="_b";
+else
+if [ "$TARGET_SLOT" = "_b" ]; then
+ACTIVE_SLOT="_b";
+INACTIVE_SLOT="_a";
+else
+ACTIVE_SLOT="_null";
+INACTIVE_SLOT="_null";
+artificial_retrofit_status=1;
+fi
+fi
+
+ui_print " - Test Type: Via Directory Method              ";
+ui_print " > Dynamic Slots (A/B): Yes                     ";
+ui_print " > Active Slot: $TARGET_SLOT                    ";
+device_dynamic="yes";
+else
+ui_print " - Test Type: Via Directory Method              ";
+ui_print " > Dynamic Slots (A/B): No                      ";
+fi
+device_dynamic="no";
+}
+
+detect_device_information() {
+ui_print " - Your Device Information:                     ";
+ui_print " > Manufacturer : $TARGET_BRAND                 ";
+ui_print " > Model Name   : $TARGET_MODEL                 ";
+ui_print " > Device Name  : $TARGET_DEVICE                ";
+ui_print " ";
+ui_print " - Verifying Device Support...                  ";
+
+if [ $DEVICE_ANDROID_VERSION_PROP_DETECTION == "NEW_METHOD" ]; then
+TARGET_DEVICE=$(getprop ro.product.system.device 2>/dev/null);
+else 
+if [ $DEVICE_ANDROID_VERSION_PROP_DETECTION == "OLD_METHOD" ]; then
+TARGET_DEVICE=$(getprop ro.product.device 2>/dev/null);
+fi
+fi
+
+if [ "$DEVICE_CODENAME_01" == "NULL" ] || [ "$DEVICE_CODENAME_02" == "NULL" ] || [ "$DEVICE_CODENAME_03" == "NULL" ] || [ "$DEVICE_CODENAME_04" == "NULL" ] || [ "$DEVICE_CODENAME_05" == "NULL" ]; then
+ui_print " - console: All Values Detected As 'NULL'       ";
+ui_print "            (default). Enter Atleast One Device ";
+ui_print "            Model In Order To Start Flashing!   ";
+abort;
+else
+if [ "$DEVICE_CODENAME_01" == "$TARGET_DEVICE" ] || [ "$DEVICE_CODENAME_02" == "$TARGET_DEVICE" ] || [ "$DEVICE_CODENAME_03" == "$TARGET_DEVICE" ] || [ "$DEVICE_CODENAME_04" == "$TARGET_DEVICE" ] || [ "$DEVICE_CODENAME_05" == "$TARGET_DEVICE" ]; then
+ui_print " > Done!                                        ";
+else
+ui_print " - console: DEVICE_CODENAME_0* Data Mismatching ";
+ui_print "            With Data Existing In Flashing      ";
+ui_print "            Script!                             ";
+abort;
+fi
+fi
+
+ui_print " ";
+ui_print " - Verifying Device Structure Schema...         ";
+
+if [ "$device_dynamic" == "no" ] && [ "$DEVICE_TYPE" == "NON_DYNAMIC" ]; then
+ui_print " > Done!                                        ";
+elif [ "$device_dynamic" == "yes" ] && [ "$DEVICE_TYPE" == "DYNAMIC" ]; then
+ui_print " > Done!                                        ";
+elif [ "$device_dynamic" == "no" ] && [ "$DEVICE_TYPE" == "DYNAMIC" ]; then
+ui_print " - console: DEVICE_TYPE Data Mismatching With   ";
+ui_print "            Data Existing In Flashing Script!   ";
+abort;
+elif [ "$device_dynamic" == "yes" ] && [ "$DEVICE_TYPE" == "NON_DYNAMIC" ]; then
+ui_print " - console: DEVICE_TYPE Data Mismatching With   ";
+ui_print "            Data Existing In Flashing Script!   ";
+abort;
+fi
+
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+}
+
+# -------------------------------------------------------------------
+
+# -------------------------------------------------------------------
+# CryptX Partition(s) Variables                       [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+# Config To Mount Partitions
+begin_mounting() {
+  $BOOTMODE && return 1;
+  ui_print " - Preparing To Mount Partitions...             ";
+  mount_all;
+  OLD_LD_PATH=$LD_LIBRARY_PATH;
+  OLD_LD_PRE=$LD_PRELOAD;
+  OLD_LD_CFG=$LD_CONFIG_FILE;
+  unset LD_LIBRARY_PATH LD_PRELOAD LD_CONFIG_FILE;
+  if [ ! "$(getprop 2>/dev/null)" ]; then
+    getprop() {
+      local propdir propfile propval;
+      for propdir in / /system_root /system /vendor /product /system_ext /odm; do
+        for propfile in default.prop build.prop; do
+          test "$propval" && break 2 || propval="$(file_getprop $propdir/$propfile "$1" 2>/dev/null)";
+        done;
+      done;
+      test "$propval" && echo "$propval" || echo "";
+    }
+  elif [ ! "$(getprop ro.build.type 2>/dev/null)" ]; then
+    getprop() {
+      ($(which getprop) | $BB grep "$1" | $BB cut -d[ -f3 | $BB cut -d] -f1) 2>/dev/null;
+    }
+  fi;
+  ui_print " - Done!                                        ";
+  ui_print " ";
+}
+
+is_mounted_rw() {
+  local mounted_rw=false
+  local startswith=$(beginswith / "$1")
+  test "$startswith" == "false" && part=/"$1" || part="$1"
+  touch "$part"/.rw && rm "$part"/.rw && mounted_rw=true
+  # echo "  > Checked If $part/.rw Is Writable i.e.       " >> /data/media/0/CryptX/CryptX.log
+  # echo "    $mounted_rw ($1/.rw being original argument)" >> /data/media/0/CryptX/CryptX.log
+  echo $mounted_rw
+}
+
+# Mount all the partitions
+mount_all() {
+  local byname mount slot system;
+  if ! is_mounted /cache; then
+    mount /cache 2>/dev/null && UMOUNT_CACHE=1
+  fi
+  if ! is_mounted /data; then
+    #ui_print " - Mounting /data" "$mountLog"
+    $BB mount /data && UMOUNT_DATA=1
+  else
+    ui_print " > /data is already mounted!                    ";
+    # echo "  > /data Is Already Mounted!                   " >> /data/media/0/CryptX/CryptX.log
+  fi;
+
+  (for mount in /vendor /product /system_ext /persist; do
+	#ui_print " - Mounting $mount                              ";
+	#ui_print " - Mounting $ANDROID_ROOT                       ";
+    $BB mount -o ro -t auto $mount;
+  done) 2>/dev/null;
+  
+  # ui_print " ";
+  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  #ui_print " - Mounting $ANDROID_ROOT                       ";
+  #ui_print " - Setting up Mount Point $ANDROID_ROOT         ";
+  #ui_print " > ANDROID_ROOT=$ANDROID_ROOT                   ";
+  # echo "  > Setting Up Mount Point $ANDROID_ROOT        " >> /data/media/0/CryptX/CryptX.log
+  # echo "  > ANDROID_ROOT=$ANDROID_ROOT                  " >> /data/media/0/CryptX/CryptX.log
+  setup_mountpoint "$ANDROID_ROOT"
+  if ! is_mounted "$ANDROID_ROOT"; then
+    mount -o ro -t auto "$ANDROID_ROOT" 2>/dev/null
+  fi
+  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  byname=bootdevice/by-name;
+  [ -d /dev/block/$byname ] || byname=$($BB find /dev/block/platform -type d -name by-name 2>/dev/null | $BB head -n1 | $BB cut -d/ -f4-);
+  [ -d /dev/block/mapper ] && byname=mapper && addToGeneralLog "- Device with dynamic partitions Found" "$mountLog";
+  [ -e /dev/block/$byname/system ] || slot=$(find_slot);
+  case $ANDROID_ROOT in
+    /system_root) setup_mountpoint /system;;
+    /system)
+      if ! is_mounted /system && ! is_mounted /system_root; then
+        setup_mountpoint /system_root;
+		#ui_print "  > Mounting /system_root as Readwrite!         ";  
+		# echo "  > Mounting /system_root Partition As Readwrite" >> /data/media/0/CryptX/CryptX.log
+        $BB mount -o rw -t auto /system_root;
+      elif [ -f /system/system/build.prop ]; then
+        setup_mountpoint /system_root;
+		#ui_print " > Moving /system to /system_root                ";
+      	# echo "  > Moving /system to /system_root              " >> /data/media/0/CryptX/CryptX.log
+        $BB mount --move /system /system_root;
+      fi;
+      ret=$?
+	  #ui_print " > Command Execution Status: $ret                ";
+	  echo "  > Command Execution Status: $ret              " >> /data/media/0/CryptX/CryptX.log
+      #if [ $ret -ne 0 ]; then
+	   # ui_print " > Command Execution Status: $ret                ";
+	    #ui_print " - Unmounting, Remounting /system As /system_root";
+		# echo "  > Unmounting And Remounting /system As        " >> /data/media/0/CryptX/CryptX.log
+	    # echo "    /system_root                                " >> /data/media/0/CryptX/CryptX.log
+
+        #($BB umount /system;
+        #$BB umount -l /system) 2>/dev/null
+        #$BB mount -o ro -t auto /dev/block/$byname/system$slot /system_root;
+      #else
+     	 # echo "  > $ret = 0                                    " >> /data/media/0/CryptX/CryptX.log
+     # fi
+    ;;
+  esac;
+  [ -f /system_root/system/build.prop ] && system=/system;
+  for mount in /vendor /product /system_ext; do
+      if ! is_mounted $mount && [ -L /system$mount -o -L /system_root$system$mount ]; then
+        setup_mountpoint $mount;
+        $BB mount -o ro -t auto /dev/block/$byname$mount$slot $mount;
+      fi;
+  done;
+  #ui_print " ";
+  #ui_print " > Checking If /system_root Is Mounted...        ";
+  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  # echo "  > Checking if /system_root Is Mounted...      " >> /data/media/0/CryptX/CryptX.log
+  if is_mounted /system_root; then
+#    mount_apex;
+    $BB mount -o bind /system_root$system /system;
+  elif is_mounted /system; then
+    $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system /system;
+    echo "  > /system Is Already Mounted!                 " >> /data/media/0/CryptX/CryptX.log
+  fi;
+  if ! is_mounted /persist && [ -e /dev/block/bootdevice/by-name/persist ]; then
+    setup_mountpoint /persist;
+    $BB mount -o ro -t auto /dev/block/bootdevice/by-name/persist /persist;
+  fi;
+  echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  system=/system
+  if [ -d /dev/block/mapper ]; then
+   # ui_print " ";
+	#ui_print " - Executing Blockdev SetRW For:                 ";
+	#ui_print "   /dev/block/mapper/system, vendor, product,    ";
+	#ui_print "   system_ext For Both Slots A And B!            ";
+    # echo "  > Executing Blockdev SetRW For                " >> /data/media/0/CryptX/CryptX.log
+    # echo "    /dev/block/mapper/system, vendor, product,  " >> /data/media/0/CryptX/CryptX.log
+    # echo "    system_ext For Both Slots A And B!          " >> /data/media/0/CryptX/CryptX.log
+    for block in system vendor product system_ext; do
+      for slot in "" _a _b; do
+        blockdev --setrw /dev/block/mapper/$block$slot 2>/dev/null
+      done
+    done
+  #ui_print " ";
+  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  fi
+  mount -o rw,remount -t auto /system || $BB mount -o rw,remount -t auto /
+  for partition in "vendor" "product" "system_ext"; do
+   # ui_print " - Remounting /$partition as Readwrite...        ";
+    # echo "  > Remounting /$partition as ReadWrite         " >> /data/media/0/CryptX/CryptX.log
+    $BB mount -o rw,remount -t auto "/$partition" 2>/dev/null
+  done
+  if [ -n "$PRODUCT_BLOCK" ]; then
+    if ! is_mounted /product; then
+      mkdir /product || true
+      if $BB mount -o rw "$PRODUCT_BLOCK" /product; then
+	 	ui_print " > /product Mounted Successfully!                ";
+		# echo "  > /product Mounted Successfully!              " >> /data/media/0/CryptX/CryptX.log
+      else
+	  	ui_print " > /product Failed To Mount!                     ";
+		# echo "  > /product Failed To Mount!                   " >> /data/media/0/CryptX/CryptX.log
+      fi
+    else
+		ui_print " > /product Is Already Mounted!                  ";
+		# echo "  > /product Is Already Mounted!                " >> /data/media/0/CryptX/CryptX.log
+    fi
+  fi
+  if [ -n "$SYSTEM_EXT_BLOCK" ]; then
+    if ! is_mounted /system_ext; then
+      mkdir /system_ext || true
+      if $BB mount -o rw "$SYSTEM_EXT_BLOCK" /system_ext; then
+	  	ui_print " > /system_ext Mounted Successfully!             ";
+		# echo "  > /system_ext Mounted Successfully!           " >> /data/media/0/CryptX/CryptX.log
+      else
+	  	ui_print " > /system_ext Failed To Mount!                  ";
+		# echo "  > /system_ext Failed To Mount!                " >> /data/media/0/CryptX/CryptX.log
+      fi
+    else
+		ui_print " > /system_ext Is Already Mounted!               ";
+		# echo "  > /system_ext Is Already Mounted!             " >> /data/media/0/CryptX/CryptX.log
+    fi
+  fi
+#  echo "                                                " >> /data/media/0/CryptX/CryptX.log
+}
+
+# More info on Apex here -> https://www.xda-developers.com/android-q-apex-biggest-tdynamic_partitionshing-since-project-treble/
+mount_apex() {
+  [ -d /system_root/system/apex ] || return 1;
+  local apex dest loop minorx num shcon var;
+  setup_mountpoint /apex;
+  $BB mount -t tmpfs tmpfs /apex -o mode=755 && $BB touch /apex/apextmp;
+  shcon=$(cat /proc/self/attr/current);
+  echo "u:r:su:s0" > /proc/self/attr/current 2>/dev/null; # work around LOS Recovery not allowing loop mounts in recovery context
+  minorx=1;
+  [ -e /dev/block/loop1 ] && minorx=$($BB ls -l /dev/block/loop1 | $BB awk '{ print $6 }');
+  num=0;
+  for apex in /system_root/system/apex/*; do
+    dest=/apex/$($BB basename $apex | $BB sed -E -e 's;\.apex$|\.capex$;;' -e 's;\.current$|\.release$;;');
+    $BB mkdir -p $dest;
+    case $apex in
+      *.apex|*.capex)
+        $BB unzip -qo $apex original_apex -d /apex;
+        [ -f /apex/original_apex ] && apex=/apex/original_apex;
+        $BB unzip -qo $apex apex_payload.img -d /apex;
+        $BB mv -f /apex/original_apex $dest.apex 2>/dev/null;
+        $BB mv -f /apex/apex_payload.img $dest.img;
+        $BB mount -t ext4 -o ro,noatime $dest.img $dest 2>/dev/null && echo "- $dest (direct)" >&2;
+        if [ $? != 0 ]; then
+          while [ $num -lt 64 ]; do
+            loop=/dev/block/loop$num;
+            [ -e $loop ] || $BB mknod $loop b 7 $((num * minorx));
+            $BB losetup $loop $dest.img 2>/dev/null;
+            num=$((num + 1));
+            $BB losetup $loop | $BB grep -q $dest.img && break;
+          done;
+          $BB mount -t ext4 -o ro,loop,noatime $loop $dest && echo "- $dest (loop)" >&2;
+          if [ $? != 0 ]; then
+            $BB losetup -d $loop 2>/dev/null;
+            if [ $num -eq 64 ] && [ "$(losetup -f)" = "/dev/block/loop0" ]; then
+              ui_print "Aborting apex mounts due to broken environment..." >&2;
+              break;
+            fi;
+          fi;
+        fi;
+      ;;
+      *) $BB mount -o bind $apex $dest && echo "$dest (bind)" >&2;;
+    esac;
+  done;
+  echo "$shcon" > /proc/self/attr/current 2>/dev/null;
+  for var in $($BB grep -o 'export .* /.*' /system_root/init.environ.rc | $BB awk '{ print $2 }'); do
+    eval OLD_${var}=\$$var;
+  done;
+  $($BB grep -o 'export .* /.*' /system_root/init.environ.rc | $BB sed 's; /;=/;'); unset export;
+  touch /apex/apexak3;
+  ui_print " - Done!                                        ";
+  ui_print " ";
+}
+
+# Config To Unmount partitions
+begin_unmounting() {
+  $BOOTMODE && return 1;
+  ui_print " - Preparing To Unmount Partitions...           ";
+  $BB mount -o bind /dev/urandom /dev/random;
+  if [ -L /etc ]; then
+    setup_mountpoint /etc;
+    $BB cp -af /etc_link/* /etc;
+    $BB sed -i 's; / ; /system_root ;' /etc/fstab;
+  fi;
+  umount_all;
+  ui_print " - Done!                                        ";
+  ui_print " ";
+}
+
+# Unmount all partitions on recovery clean up and for a fresh install
+umount_all() {
+  local mount;
+  (if [ ! -d /postinstall/tmp ]; then
+   # ui_print " - Unmounting /system                           ";
+	# echo "  > /system Unmounted Successfully!             " >> /data/media/0/CryptX/CryptX.log
+    $BB umount /system;
+    $BB umount -l /system;
+  fi) 2>/dev/null;
+  
+#  umount_apex; # we're not using apex so there is no need to unmount it for now.
+  (if [ ! -d /postinstall/tmp ]; then
+   # ui_print " - Unmounting /system_root...                   ";
+	# echo "  > /system_root Unmounted Successfully!        " >> /data/media/0/CryptX/CryptX.log
+    $BB umount /system_root;
+    $BB umount -l /system_root;
+  fi;
+  #ui_print " - Unmounting /vendor...                        ";
+  # echo "  > /vendor Unmounted Successfully!             " >> /data/media/0/CryptX/CryptX.log
+
+  umount /vendor; # busybox umount /vendor breaks recovery on some hacky devices
+  umount -l /vendor;
+  for mount in /mnt/system /mnt/vendor /product /mnt/product /system_ext /mnt/system_ext /persist; do
+    #echo "  > $mount Unmounted Successfully!              " >> /data/media/0/CryptX/CryptX.log
+    $BB umount $mount;
+    $BB umount -l $mount;
+  done;
+  if [ "$UMOUNT_DATA" ]; then
+	#ui_print " - Unmounting /data...                          ";
+    # echo "  > /data Unmounted Successfully!               " >> /data/media/0/CryptX/CryptX.log
+    $BB umount /data;
+    $BB umount -l /data;
+  fi
+  if [ "$UMOUNT_CACHE" ]; then
+    $BB umount /cache
+    $BB umount -l /cache
+  fi) 2>/dev/null;
+}
+
+# Unmount apex partition upon recovery cleanup
+umount_apex() {
+  [ -f /apex/apexak3 ] || return 1;
+  echo "- Unmounting apex..." >&2;
+  local dest loop var;
+  for var in $($BB grep -o 'export .* /.*' /system_root/init.environ.rc 2>/dev/null | $BB awk '{ print $2 }'); do
+    if [ "$(eval echo \$OLD_$var)" ]; then
+      eval $var=\$OLD_${var};
+    else
+      eval unset $var;
+    fi;
+    unset OLD_${var};
+  done;
+  for dest in $($BB find /apex -type d -mindepth 1 -maxdepth 1); do
+    loop=$($BB mount | $BB grep $dest | $BB grep loop | $BB cut -d\  -f1);
+    $BB umount -l $dest;
+    losetup $loop >/dev/null 2>&1 && $BB losetup -d $loop;
+  done;
+  [ -f /apex/apextmp ] && $BB umount /apex;
+  $BB rm -rf /apex/apexak3 /apex 2>/dev/null;
+}
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX Setup Flashing Environment Module         [DO NOT FIDDLE]
+# -------------------------------------------------------------------
+
+setup_flashing_environment() {
+
+display_project_details;
+
+ui_print " - Getting Information...                       ";
+sleep 5;
+ui_print " - Setting Up Environment...                    ";
+sleep 5;
+ui_print " ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " - Enabling CryptX [Lite] Daemon...              ";
+sleep 2;
+ui_print " ";
+sleep 0.2;
+ui_print " - Unpacking Setup Files...                     ";
+sleep 0.2;
+unpack_package_files;
+sleep 0.2;
+setup_busybox_services;
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+begin_mounting;
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " - Fetching Current Device Information...       ";
+sleep 1;
+check_device_type;
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+detect_device_information;
+sleep 0.2;
+
+# <-- Allot Flashing Functions, After Setup Done -->
+# Package extract file
+package_extract_file() {
+ui_print " > Flashing $(echo $1 | awk -F "/" '{print $NF}')";
+unzip -p "$ZIPFILE" $1 >$2
+}
+
+# Package extract (.zst) file
+package_extract_zstd() {
+ui_print " > Flashing $(echo $1 | awk -F "/" '{print $NF}')";
+unzip -p "$ZIPFILE" $1 | $bin/zstd -c -d >$2
+}
+
+# Package extract (.gz) file
+package_extract_pigz() {
+ui_print " > Flashing $(echo $1 | awk -F "/" '{print $NF}')"
+unzip -p "$ZIPFILE" $1 | pigz -c -d >$2
+}
+
+# Package extract (.gz) file
+ResurrectedOS_Flash_FW() {
+ui_print " > Flashing $(echo $1 | awk -F "/" '{print $NF}')"
+unzip -p "$ZIPFILE" $1 | pigz -c -d >$2
+}
+
+# Package extract (.gz) file
+ResurrectedOS_Flash_OTA() {
+ui_print " > Flashing $(echo $1 | awk -F "/" '{print $NF}')";
+unzip -p "$ZIPFILE" $1 | $bin/zstd -c -d >$2
+}
+
+SET_PERMISSION_END=1;
+}
+
+finalise_flashing_operation() {
+if [ $SET_PERMISSION_END = 1 ]; then
+# End Flashing Session With Message
+ui_print " ";
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+begin_unmounting;
+sleep 0.2;
+ui_print "------------------------------------------------";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " #CryptX Flasher";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " #itsD3XT3R07";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " #$MOD_PROJECTNAME";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+ui_print " ";
+sleep 0.2;
+
+# Exit Flasher
+cleanup;
+exit 0;
+
+else
+
+ui_print " - CryptX Flasher Service(s) Broken!            ";
+ui_print " > Happy Fiddling!                              ";
+ui_print " ";
+ui_print " ";
+ui_print " ";
+
+# Exit Flasher
+cleanup;
+exit 0;
+
+fi
+}
+
+# Load Connecter File(s)
+. /tmp/CryptX/cryptx-flasher
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# Description: CryptX [Lite] Binary
+# Author     : @itsD3XT3R07
+# Date       : 08 April 2024
+# Device     : Universal
+# Model      : Universal
+# License    : GPL-3.0-or-later (SPDX)
+# -------------------------------------------------------------------
