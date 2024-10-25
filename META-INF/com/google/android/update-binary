@@ -2,8 +2,8 @@
 
 # -------------------------------------------------------------------
 # Description : CryptX
-# Author      : @lakshkukreja (GitHub)
-# Date        : 05 May 2024
+# Author      : @
+# Date        : 26 October 2024
 # Device      : Universal
 # Model       : Universal
 # License     : GPL-3.0-or-later (SPDX)
@@ -46,34 +46,82 @@ CryptX_Recovery_Variant=$(getprop ro.CryptX.Variant 2>/dev/null);
 CryptX_Recovery_BStatus=$(getprop ro.CryptX.Status 2>/dev/null);
 CryptX_Recovery_BIDInfo=$(getprop ro.CryptX.BuildDate 2>/dev/null);
 
+# the current MOD recovery identification prop(s)
+# set "CXRVC" in order to enable detection feature for minimum and maximum version preset for the mod recovery being used
 CXRVC=$CryptX_Recovery_VerCode
 
 # -------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------
-# CryptX+ Control Panel: Master Toggles 
+# CryptX [Plus] Module(s) Information
 # -------------------------------------------------------------------
 
-# CryptX Module: VolumeKeySelector
-CryptXModule_ACTIVATE_VKS=0; 
+# 01 | Volume Key Selection
+# When Turned On, Enables Support Of Using Volume Keys Of The
+# Device Itself To Choose Following Options. Predefined With
+# Basic Layout Making It Easier For Anyone To Use.
 
-# CryptX Module: CryptX Recovery Support
-CryptXModule_ACTIVATE_CRS=1;
+# 02 | CryptX MOD Recovery
+# When Turned On, It Restricts Flashing Only To Our Own Recovery.
+# Other Recoveries Would Fail To Flash Package.
+# The Following Package Should Support Minimum & Maximum Version
+# Support In Order To Flash The Package.
 
-# CryptX Module: Hard-Brick Device
+# 03 | Confinement Mode
+# When Turned On, If The User Is Unverified To Flash Particular 
+# Package Via Activator. If Incase User Tries To Flash The ROM,
+# Might End Up Loosing Access To His Device For Which We Are 
+# Not Responsible.
+
+# 04 | Logs Service
+# When Turned On, CryptX Generates Own Service Logs & Creates Folder
+# In Internal Storage & /tmp/. Where User Can Refer All The 
+# Corresponding Information About Flashing & Device Statistics.
+
+# 05 | Shuffle Device Confidential Information
+# When Turned On, The Device(s) Confidential Information Is Shuffled
+# In Such Order Which The Owner Is Only Able To Understand Within 
+# The Logs. Helpful While Sharing Logs To Developer Such That 3rd
+# Party Users Cannot Misuse The Information.
+
+# 06 | Restrict Packages Service
+# When Turned On, The Flashing Process (.zip) Gets Splitted
+# Amongst A Number Of Packages Thats Need To Be Flashed In A Specific
+# Order. Incase Order Mismatches Flashing Will Fail.
+
+# 07 | Time Bomb Service
+# When Turned On, Package Is Restricted To Be Only Flashed Until
+# Certain Time After Downloaded, Post That Flashing Will Fail
+# Automatically.
+
+# -------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------
+# CryptX [Plus] Module(s) Control Panel 
+# -------------------------------------------------------------------
+
+# 01 | CryptX Module: 'Volume Key Selection' Support
+CryptXModule_ACTIVATE_VKS=0;
+
+# 02 | CryptX Module: 'CryptX MOD Recovery' Support
+CryptXModule_ACTIVATE_CMR=1;
+
+# 03 | CryptX Module: 'Confinement Mode' Support
 CryptXModule_ACTIVATE_HBD=0;
 
-# CryptX Module: Disable Logs For CryptX Service(s)
+# 04 | CryptX Module: Disable Logs For CryptX Service(s)
 CryptXModule_ACTIVATE_DLS=0;
 
-# CryptX Module: Shuffle Device Confidential Details In Logs
+# 05 | CryptX Module: Shuffle Device Confidential Details In Logs
 CryptXModule_ACTIVATE_USD=0;
 
-# CryptX Module: Set Package ID Amongst Other(s) | MAX ID LIMIT IS SET TO 10
+# 06 | CryptX Module: Set Package ID Amongst Other(s) | MAX ID LIMIT IS SET TO 10
 CryptXModule_PackageID=01;
 
-# CrptX Module: Set A TimeBomb Limit | File Won't Flash After X Amount Of Time
+# 07 | CryptX Module: Set Package TimeBomb Limit | Package Won't Flash After Time Exceeds
+CryptXModule_Activate_TMS=1;
 
 # -------------------------------------------------------------------
 
@@ -133,6 +181,8 @@ CX_MINC="100";
 CX_MINI="V1.0.0";
 CX_MAXC="150";
 CX_MAXI="V1.5.0";
+
+# CrptX Module: Set A TimeBomb Limit | File Won't Flash After X Amount Of Time
 
 # -------------------------------------------------------------------
 
@@ -4520,8 +4570,8 @@ exit 0
 
 # -------------------------------------------------------------------
 # Description : CryptX
-# Author      : @lakshkukreja (GitHub)
-# Date        : 05 May 2024
+# Author      : @
+# Date        : 26 October 2024
 # Device      : Universal
 # Model       : Universal
 # License     : GPL-3.0-or-later (SPDX)
