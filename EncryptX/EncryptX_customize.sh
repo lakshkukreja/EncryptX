@@ -1,5 +1,5 @@
 #!/sbin/sh
-# CryptX | @ | [0275] Commit: Please Modify Information Between " "; Only To Reflect It Properly In Main Flasher!
+# EncryptX | @ | [0275] Commit: Please Modify Information Between " "; Only To Reflect It Properly In Main Flasher!
 
 # Display Project Name Details
 MOD_PROJECTNAME="FlymeOS";
@@ -30,10 +30,10 @@ ROM_MOD_DATE="17-06-2024";
 ROM_MOD_TIME="11:49PM [IST]";
 
 # Display Security & Project Maintainer Name [LOCKED EDITING - NO CHANGES WILL REFLECTED IF YOU TRY TO MODIFY!]
-# CRYPTX_MAINTAINER="@AstroDEV63";
+# EncryptX_MAINTAINER="@AstroDEV63";
 
 # Display Security & Project Version [LOCKED EDITING - NO CHANGES WILL BE REFLECTED IF YOU TRY TO MODIFY!]
-# CRYPTX_VERSION="V1.0.2 [Plus]";
+# EncryptX_VERSION="V1.0.2 [Plus]";
 
 # <-- Display A Prototype Of Flashing Output - NOTE: The Flashing Format Will Remain LOCKED! -->
 # ---------------------------------------
@@ -45,5 +45,5 @@ ROM_MOD_TIME="11:49PM [IST]";
 # MOD_DEVICENAME
 # MOD_DATE & MOD_TIME
 # ---------------------------------------
-# CRYPTX_VERSION BY CRYPTX_MAINTAINER
+# EncryptX_VERSION BY EncryptX_MAINTAINER
 # ---------------------------------------
