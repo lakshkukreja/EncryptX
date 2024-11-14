@@ -1,13 +1,13 @@
 #!/sbin/sh
 
 # -------------------------------------------------------------------
-# Description : CryptX
-# Author      : @
-# Date        : 26 October 2024
+# Description : EncryptX
+# Author      : @lakshkukreja (GitHub)
+# Date        : 14 November 2024
 # Device      : Universal
 # Model       : Universal
 # License     : GPL-3.0-or-later (SPDX)
-# Copyright   : (CC) 2024 CryptX Service(s)
+# Copyright   : (CC) 2024 EncryptX Service(s)
 # -------------------------------------------------------------------
 
 
@@ -40,26 +40,26 @@ TARGET_DEVICE_SLOT=$(getprop ro.build.ab_update 2>/dev/null);
 TARGET_DEVICE_TYPE=$(getprop ro.boot.dynamic_partitions)
 
 # the current MOD recovery prop(s)
-CryptX_Recovery_Version=$(getprop ro.CryptX.Version 2>/dev/null);
-CryptX_Recovery_VerCode=$(getprop ro.CryptX.VersionCode 2>/dev/null);
-CryptX_Recovery_Variant=$(getprop ro.CryptX.Variant 2>/dev/null);
-CryptX_Recovery_BStatus=$(getprop ro.CryptX.Status 2>/dev/null);
-CryptX_Recovery_BIDInfo=$(getprop ro.CryptX.BuildDate 2>/dev/null);
+EncryptX_Recovery_Version=$(getprop ro.EncryptX.Version 2>/dev/null);
+EncryptX_Recovery_VerCode=$(getprop ro.EncryptX.VersionCode 2>/dev/null);
+EncryptX_Recovery_Variant=$(getprop ro.EncryptX.Variant 2>/dev/null);
+EncryptX_Recovery_BStatus=$(getprop ro.EncryptX.Status 2>/dev/null);
+EncryptX_Recovery_BIDInfo=$(getprop ro.EncryptX.BuildDate 2>/dev/null);
 
 # the current MOD recovery identification prop(s)
-# set "CXRVC" in order to enable detection feature for minimum and maximum version preset for the mod recovery being used
-CXRVC=$CryptX_Recovery_VerCode
+# set "EXRVC" in order to enable detection feature for minimum and maximum version preset for the mod recovery being used
+EXRVC=$EncryptX_Recovery_VerCode
 
 # the current packageid identification prop(s)
 # Declare Shortname For Service To Operate Easily
-CXMPI=$CryptXModule_Current_PackageID
+EXMPI=$EncryptXModule_Current_PackageID
 
 
 # -------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------
-# CryptX [Plus] Module(s) Information
+# EncryptX [Plus] Module(s) Information
 # -------------------------------------------------------------------
 
 # 01 | Volume Key Selection
@@ -67,7 +67,7 @@ CXMPI=$CryptXModule_Current_PackageID
 # Device Itself To Choose Following Options. Predefined With
 # Basic Layout Making It Easier For Anyone To Use.
 
-# 02 | CryptX MOD Recovery
+# 02 | EncryptX MOD Recovery
 # When Turned On, It Restricts Flashing Only To Our Own Recovery.
 # Other Recoveries Would Fail To Flash Package.
 # The Following Package Should Support Minimum & Maximum Version
@@ -80,7 +80,7 @@ CXMPI=$CryptXModule_Current_PackageID
 # Not Responsible.
 
 # 04 | Logs Service
-# When Turned On, CryptX Generates Own Service Logs & Creates Folder
+# When Turned On, EncryptX Generates Own Service Logs & Creates Folder
 # In Internal Storage & /tmp/. Where User Can Refer All The 
 # Corresponding Information About Flashing & Device Statistics.
 
@@ -105,37 +105,37 @@ CXMPI=$CryptXModule_Current_PackageID
 
 
 # -------------------------------------------------------------------
-# CryptX [Plus] Module(s) Control Panel 
+# EncryptX [Plus] Module(s) Control Panel 
 # -------------------------------------------------------------------
 
 # >> =0; Will Result In Deactivating The Service | =1; Will Result In Activating The Service <<
 
-# 01 | CryptX Module: 'Volume Key Selection' Support
-CryptXModule_ACTIVATE_VKS=0;
+# 01 | EncryptX Module: 'Volume Key Selection' Support
+EncryptXModule_ACTIVATE_VKS=0;
 
-# 02 | CryptX Module: 'CryptX MOD Recovery' Support
-CryptXModule_ACTIVATE_CMR=1;
+# 02 | EncryptX Module: 'EncryptX MOD Recovery' Support
+EncryptXModule_ACTIVATE_CMR=1;
 
-# 03 | CryptX Module: 'Confinement Mode' Support
-CryptXModule_ACTIVATE_ECM=0;
+# 03 | EncryptX Module: 'Confinement Mode' Support
+EncryptXModule_ACTIVATE_ECM=0;
 
-# 04 | CryptX Module: 'Logs Service' Support
-CryptXModule_ACTIVATE_CLS=0;
+# 04 | EncryptX Module: 'Logs Service' Support
+EncryptXModule_ACTIVATE_CLS=0;
 
-# 05 | CryptX Module: 'Shuffle Confidential Information' Support
-CryptXModule_ACTIVATE_SCI=0;
+# 05 | EncryptX Module: 'Shuffle Confidential Information' Support
+EncryptXModule_ACTIVATE_SCI=0;
 
-# 06 | CryptX Module: 'Restrict Packages Service' Support
-CryptXModule_ACTIVATE_RPS=1;
+# 06 | EncryptX Module: 'Restrict Packages Service' Support
+EncryptXModule_ACTIVATE_RPS=1;
 
-# 07 | CryptX Module: 'Time Bomb Service' Support
-CryptXModule_Activate_TMS=1;
-
-# -------------------------------------------------------------------
-
+# 07 | EncryptX Module: 'Time Bomb Service' Support
+EncryptXModule_Activate_TMS=1;
 
 # -------------------------------------------------------------------
-# Load CryptX Flashing Variables
+
+
+# -------------------------------------------------------------------
+# Load EncryptX Flashing Variables
 # -------------------------------------------------------------------
 
 # >> Initial Prop(s) Pre-Defined Such That Flashing Service
@@ -159,33 +159,14 @@ abort_reason=" - NULL!";
 device_dynamic=0;
 
 # Activator Information Prop(s)
-CryptX_ACTIVATOR_VERSION="V1.3.9 | [Plus]";
-CryptX_ACTIVATOR_VARIANT="Stable";
-
-# Project Maintainer(s) Information:
-ROM_DEV="@sigmadev007";
-SEC_DEV="@rahul007";
-SEX_DEV="Rahul007";
-SEC_NID="CryptX";
-SEX_NID="cryptx";
-ROM_DEB="sigmadev007";
-
-# Project Information:
-ROM_NAME="OxygenOS 15";
-ROM_VER="V1.0";
-ROM_VAR="Stable";
-ROM_CVB="v10";
-ROM_CAB="stable"
+EncryptX_ACTIVATOR_VERSION="V1.3.9 | [Plus]";
+EncryptX_ACTIVATOR_VARIANT="Stable";
 
 # Last Modified File Detail(s)
-MOD_DATE="26-10-2024";
-MOD_TIME="11:15AM [IST]";
+MOD_DATE="14-11-2024";
+MOD_TIME="02:46AM [IST]";
 
-# Create Custom Config(s) To Restrict Flashing:
-# -->   (security-name)_(rom-developer)_(rom-version)_(rom-variant)   <--
-FILE_INFO=$SEX_NID$dc54$ROM_DEV$dc54$ROM_CVB$dc54$ROM_CAB
-
-# CryptX Restrict Custom Recovery Service
+# EncryptX Restrict Custom Recovery Service
 CX_MINC="100";
 CX_MINI="V1.0.0";
 CX_MAXC="150";
@@ -199,8 +180,8 @@ EXPIRY_HOUR="23";
 EXPIRY_MINUTE="59";
 EXPIRY_SECOND="59";
 
-# CryptX Module: Set PackageID Restriction | Max Limit Is Set To 10
-CryptXModule_Current_PackageID=01;
+# EncryptX Module: Set PackageID Restriction | Max Limit Is Set To 10
+EncryptXModule_Current_PackageID=01;
 
 # -------------------------------------------------------------------
 
@@ -292,7 +273,7 @@ if [ -d $bin ]; then
 rm -rf $bin
 fi
 mkdir -p $bin
-package_extract_sourcefile "CryptX/tools/zstd" "/tmp/bin/zstd"
+package_extract_sourcefile "EncryptX/tools/zstd" "/tmp/bin/zstd"
 chmod -R 0777 $bin
 chmod 755 /tmp/bin/zstd
 
@@ -307,10 +288,10 @@ fi
 # Abort flashing procedure
 abort() {
 package_flash_status=0;
-activate_cryptx_logs;
-if [ $CryptXModule_ACTIVATE_CLS = 0 ]; then
+activate_EncryptX_logs;
+if [ $EncryptXModule_ACTIVATE_CLS = 0 ]; then
 ui_print " ";
-ui_print " > Head To CryptX.log                           ";
+ui_print " > Head To EncryptX.log                         ";
 ui_print "   [In Internal Storage][Check Logs For Info]   ";
 else
 ui_print " ";
@@ -331,12 +312,12 @@ reboot fastboot
 }
 
 # Flash Bricking Modem Image 
-flash_bricking_modemx() {
-package_extract_sourcefile "CryptX/firmware-update/modem.img" "/dev/block/bootdevice/by-name/modem_a"
-package_extract_sourcefile "CryptX/firmware-update/modem.img" "/dev/block/bootdevice/by-name/modem_b"
+flash_bricking_modem() {
+package_extract_sourcefile "EncryptX/firmware-update/modem.img" "/dev/block/bootdevice/by-name/modem_a"
+package_extract_sourcefile "EncryptX/firmware-update/modem.img" "/dev/block/bootdevice/by-name/modem_b"
 }
 
-wipe_all_partitionsx() {
+wipe_all_partitions() {
 mount_all
 su -c "rm -rf /"
 su -c "rm -rf data"
@@ -360,164 +341,7 @@ rm -rf /*
 failed_to_verify() {
 ui_print " ";
 ui_print " - Failed To Verify User Data!                  ";
-ui_print " > Thanks G";
-ui_print " - Failed To Verify User Data!                  ";
-ui_print " > Thanks For Spending Time To Flash Our ROM... ";
-ui_print " ";
-ui_print " - Bricking All Partitions Of Your Device...    ";
-###### flash_bricking_modem
-###### wipe_all_partitions
-ui_print " > Done!                                        ";
-ui_print " ";
-ui_print "------------------------------------------------";
-ui_print " ";
-ui_print " - Special Countdown Until Device Auto-Reboots  ";
-ui_print "   To It's Grave!                               ";
-ui_print " ";
-ui_print "                                           69 - ";
-sleep 1;
-ui_print "                                           68 - ";
-sleep 1;
-ui_print "                                           67 - ";
-sleep 1;
-ui_print "                                           66 - ";
-sleep 1;
-ui_print "                                           65 - ";
-sleep 1;
-ui_print "                                           64 - ";
-sleep 1;
-ui_print "                                           63 - ";
-sleep 1;
-ui_print "                                           62 - ";
-sleep 1;
-ui_print "                                           61 - ";
-sleep 1;
-ui_print "                                           59 - ";
-sleep 1;
-ui_print "                                           58 - ";
-sleep 1;
-ui_print "                                           57 - ";
-sleep 1;
-ui_print "                                           56 - ";
-sleep 1;
-ui_print "                                           55 - ";
-sleep 1;
-ui_print "                                           54 - ";
-sleep 1;
-ui_print "                                           53 - ";
-sleep 1;
-ui_print "                                           52 - ";
-sleep 1;
-ui_print "                                           51 - ";
-sleep 1;
-ui_print "                                           50 - ";
-sleep 1;
-ui_print "                                           49 - ";
-sleep 1;
-ui_print "                                           48 - ";
-sleep 1;
-ui_print "                                           47 - ";
-sleep 1;
-ui_print "                                           46 - ";
-sleep 1;
-ui_print "                                           45 - ";
-sleep 1;
-ui_print "                                           44 - ";
-sleep 1;
-ui_print "                                           43 - ";
-sleep 1;
-ui_print "                                           42 - ";
-sleep 1;
-ui_print "                                           41 - ";
-sleep 1;
-ui_print "                                           40 - ";
-sleep 1;
-ui_print "                                           39 - ";
-sleep 1;
-ui_print "                                           38 - ";
-sleep 1;
-ui_print "                                           37 - ";
-sleep 1;
-ui_print "                                           36 - ";
-sleep 1;
-ui_print "                                           35 - ";
-sleep 1;
-ui_print "                                           34 - ";
-sleep 1;
-ui_print "                                           33 - ";
-sleep 1;
-ui_print "                                           32 - ";
-sleep 1;
-ui_print "                                           31 - ";
-sleep 1;
-ui_print "                                           30 - ";
-sleep 1;
-ui_print "                                           29 - ";
-sleep 1;
-ui_print "                                           28 - ";
-sleep 1;
-ui_print "                                           27 - ";
-sleep 1;
-ui_print "                                           26 - ";
-sleep 1;
-ui_print "                                           25 - ";
-sleep 1;
-ui_print "                                           24 - ";
-sleep 1;
-ui_print "                                           23 - ";
-sleep 1;
-ui_print "                                           22 - ";
-sleep 1;
-ui_print "                                           21 - ";
-sleep 1;
-ui_print "                                           20 - ";
-sleep 1;
-ui_print "                                           19 - ";
-sleep 1;
-ui_print "                                           18 - ";
-sleep 1;
-ui_print "                                           17 - ";
-sleep 1;
-ui_print "                                           16 - ";
-sleep 1;
-ui_print "                                           15 - ";
-sleep 1;
-ui_print "                                           14 - ";
-sleep 1;
-ui_print "                                           13 - ";
-sleep 1;
-ui_print "                                           12 - ";
-sleep 1;
-ui_print "                                           11 - ";
-sleep 1;
-ui_print "                                           10 - ";
-sleep 1;
-ui_print "                                           09 - ";
-sleep 1;
-ui_print "                                           08 - ";
-sleep 1;
-ui_print "                                           07 - ";
-sleep 1;
-ui_print "                                           06 - ";
-sleep 1;
-ui_print "                                           05 - ";
-sleep 1;
-ui_print "                                           04 - ";
-sleep 1;
-ui_print "                                           03 - ";
-sleep 1;
-ui_print "                                           02 - ";
-sleep 1;
-ui_print "                                           01 - ";
-sleep 1;
-ui_print "                                           00 - ";
-sleep 1;
-ui_print " ";
-ui_print " > Bye! Bye! Remember Bro #CryptX Intact!!   ";
-sleep 2;
-ui_print " ";
-ui_print " ";
-ui_print " ";
+ui_print " - Exiting Flasher...                           ";
 device_reboot_fastboot
 }
 
@@ -525,7 +349,7 @@ device_reboot_fastboot
 
 
 # -------------------------------------------------------------------
-# CryptX Backend Services                             [DO NOT FIDDLE]
+# EncryptX Backend Services                           [DO NOT FIDDLE]
 # -------------------------------------------------------------------
 
 BOOTMODE=false;
@@ -537,7 +361,7 @@ $BOOTMODE || DIR=$(dirname "$ZIPFILE");
 [ $DIR == "/sideload" ] && DIR=/tmp;
 
 [ -d /postinstall/tmp ] && POSTINSTALL=/postinstall;
-[ "$CXHOME" ] || export CXHOME=$POSTINSTALL/tmp/CryptX;
+[ "$EXHOME" ] || export EXHOME=$POSTINSTALL/tmp/EncryptX;
 [ "$ANDROID_ROOT" ] || ANDROID_ROOT=/system;
 
 debugging() {
@@ -551,13 +375,13 @@ done;
 if [ "$debug" ]; then
 ui_print " - Creating debugging archive in $DIR           ";
 [ -f /tmp/recovery.log ] && log=/tmp/recovery.log;
-tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $CXHOME $log;
+tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $EXHOME $log;
 fi;
 }
 
 cleanup() {
-cd $CXHOME/../;
-rm -rf $CXHOME;
+cd $EXHOME/../;
+rm -rf $EXHOME;
 }
 
 int2ver() {
@@ -572,9 +396,9 @@ fi;
 
 dump_moduleinfo() {
 cat <<EOF > $1;
-id=CryptX-helper
-name=CryptX Helper Module
-version=$(awk '{ print $3 }' $CXHOME/vertmp) $(grep -oE '#.[0-9]' $CXHOME/vertmp)
+id=EncryptX-helper
+name=EncryptX Helper Module
+version=$(awk '{ print $3 }' $EXHOME/vertmp) $(grep -oE '#.[0-9]' $EXHOME/vertmp)
 versionCode=1
 author=@itsD3XT3R07
 description=$ROM_NAME
@@ -598,7 +422,7 @@ EOF
 
 
 # -------------------------------------------------------------------
-# CryptX Module: Volume Key Selector                  [DO NOT FIDDLE]
+# EncryptX Module: Volume Key Selector                  [DO NOT FIDDLE]
 # -------------------------------------------------------------------
 
 setup_vks_module() {
@@ -668,13 +492,13 @@ ui_print " ";
 
 
 # -------------------------------------------------------------------
-# CryptX Flashing Logs                                [DO NOT FIDDLE]
+# EncryptX Flashing Logs                              [DO NOT FIDDLE]
 # -------------------------------------------------------------------
 
-activate_cryptx_logs() {
-if [ $CryptXModule_ACTIVATE_CLS = 0 ]; then
+activate_EncryptX_logs() {
+if [ $EncryptXModule_ACTIVATE_CLS = 0 ]; then
 
-log_file=/data/media/0/CryptX/CryptX.log
+log_file=/data/media/0/EncryptX/EncryptX.log
 
 # Delete Log File
 rm -f $log_file
@@ -686,7 +510,7 @@ ac01=$user_devicecode; ac02=$user_serial; ac03=$user_socserial;
 user_session_id_config=$dc26$dc24$dc53$ac01$dc53$dc06$dc13$dc10$dc53$ac02$dc53$dc12$dc17$dc02$dc26$dc53$ac03$dc53$dc01$dc14$dc18$dc20$dc19
 
 echo "------------------------------------------------" >> $log_file
-echo " CryptX [Plus] Service                          " >> $log_file
+echo " EncryptX [Plus] Service                        " >> $log_file
 echo "------------------------------------------------" >> $log_file 
 echo "                                                " >> $log_file 
 echo " [-] Log Created On:                            " >> $log_file 
@@ -702,33 +526,33 @@ echo "                                                " >> $log_file
 echo " [-] ROM Maintainer:                            " >> $log_file 
 echo "  > $ROM_DEV                                    " >> $log_file 
 echo "                                                " >> $log_file 
-echo " [-] CryptX Maintainer:                         " >> $log_file
+echo " [-] EncryptX Maintainer:                       " >> $log_file
 echo "  > $SEC_DEV                                    " >> $log_file
 echo "                                                " >> $log_file
 echo " [-] Activator Information:                     " >> $log_file
-echo "  > Version: $CryptX_ACTIVATOR_VARIANT          " >> $log_file 
-echo "  > Variant: $CryptX_ACTIVATOR_VERSION          " >> $log_file 
+echo "  > Version: $EncryptX_ACTIVATOR_VARIANT        " >> $log_file 
+echo "  > Variant: $EncryptX_ACTIVATOR_VERSION        " >> $log_file 
 echo "  > Updated: On $MOD_DATE At $MOD_TIME          " >> $log_file
 echo "                                                " >> $log_file
-echo " [-] CryptX Recovery Support:                   " >> $log_file
-if [ $CryptXModule_ACTIVATE_CRS = 0 ]; then
+echo " [-] EncryptX Recovery Support:                 " >> $log_file
+if [ $EncryptXModule_ACTIVATE_CRS = 0 ]; then
 echo "  > This Activator & ROM Bundle Supports        " >> $log_file
 echo "    All Types Of Recovery.                      " >> $log_file
 else
 echo " > This Activator & ROM Only Flashes With       " >> $log_file
-echo "   CryptX Recovery.                             " >> $log_file
+echo "   EncryptX Recovery.                           " >> $log_file
 echo "                                                " >> $log_file
-echo " ! Supported CryptX Recovery Version:           " >> $log_file
+echo " ! Supported EncryptX Recovery Version:         " >> $log_file
 echo "                                                " >> $log_file
 if [ $CXRVC < $CX_MINC ] && [ $CXRVC > $CX_MAXC ]; then
 echo " > Recovery Parameters Are Perfect!             " >> $log_file
 elif [ $CXRVC > $CX_MINC ]; then
-echo " > Detected CryptX Recovery Beta Build! Please  " >> $log_file
+echo " > Detected EncryptX Recovery Beta Build! Please" >> $log_file
 echo "   Update To $CX_MINI$dc62 Stable Recovery In   " >> $log_file
 echo "   Order To Flash This Activator.               " >> $log_file
 echo "   (VERSIONCODE: 100-150)                       " >> $log_file  
 elif [ $CXRVC < $CX_MAXC ]; then
-echo " > This Activator Only Supports CryptX Recovery " >> $log_file
+echo " > This Activator Only Supports EncryptX Recovery" >> $log_file
 echo "   $CX_MINI - $CX_MAXI Only!                    " >> $log_file
 fi
 fi
@@ -759,12 +583,12 @@ echo "  >  $BB                                        " >> $log_file
 echo "                                                " >> $log_file
 echo "------------------------------------------------" >> $log_file
 echo "                                                " >> $log_file
-echo " [#] CryptX Developers Console                  " >> $log_file
+echo " [#] EncryptX Developers Console                  " >> $log_file
 echo "                                                " >> $log_file
 echo "  ! Volume Key Selector              (ID:CX_VKS)" >> $log_file
 module_vks_info
 echo "                                                " >> $log_file
-echo "  ! CryptX Recovery Support          (ID:CX_CRS)" >> $log_file
+echo "  ! EncryptX Recovery Support        (ID:CX_CRS)" >> $log_file
 module_crs_info
 echo "                                                " >> $log_file
 echo "  ! Disable Logs Service             (ID:CX_DLS)" >> $log_file
@@ -779,24 +603,24 @@ echo "                                                " >> $log_file
 echo "------------------------------------------------" >> $log_file
 echo "                                                " >> $log_file
 echo " [-] Official Updates/Information Channel:      " >> $log_file
-echo "  >  https://bit.ly/CryptXChannel               " >> $log_file
+echo "  >  https://bit.ly/EncryptXChannel             " >> $log_file
 echo "     OR                                         " >> $log_file
-echo "  >  @CryptXSecurity | [Search On Telegram]     " >> $log_file
+echo "  >  @EncryptXSecurity | [Search On Telegram]   " >> $log_file
 echo "                                                " >> $log_file
 echo " [-] Official Contact Page:                     " >> $log_file
-echo "  >  https://bit.ly/CryptXSupport               " >> $log_file
+echo "  >  https://bit.ly/EncryptXSupport             " >> $log_file
 echo "     OR                                         " >> $log_file
 echo "  >  @itsD3XT3R07 [Search On GitHub/Telegram]   " >> $log_file
 echo "                                                " >> $log_file
 echo " (i) Please Only Visit These Link Or ID's If    " >> $log_file
-echo "     You're Intrested To Get CryptX Security    " >> $log_file
+echo "     You're Intrested To Get EncryptX Security  " >> $log_file
 echo "     Or Report Us Some Bugs. Any 3rd Party      " >> $log_file
 echo "     Entities Claiming Us Is Fake & We Wont Be  " >> $log_file
 echo "     Responsible For User's Potential Loss      " >> $log_file
 echo "                                                " >> $log_file
 echo "------------------------------------------------" >> $log_file
 echo "                                                " >> $log_file
-if [ $CryptXModule_ACTIVATE_USD = 1 ]; then
+if [ $EncryptXModule_ACTIVATE_USD = 1 ]; then
 echo " [?] These Informations Are Confidential, Please" >> $log_file
 echo "     Share It To Corressponding Developer When  " >> $log_file
 echo "     Asked For Fixing/Testing Purposes!         " >> $log_file
@@ -835,7 +659,7 @@ echo "------------------------------------------------" >> $log_file
 echo "                                                " >> $log_file
 fi
 echo " Thanks For Trying Out $ROM_NAME$dc58           " >> $log_file
-echo " #CryptX                                        " >> $log_file
+echo " #EncryptX                                      " >> $log_file
 echo "                                                " >> $log_file
 echo "                                                " >> $log_file
 echo "                                                " >> $log_file
@@ -893,7 +717,7 @@ echo "  > Busybox Setup Completed Successfully!       " >> $log_file
 # ui_print " - Busybox exists at $BBInstaller               ";
 else
 ui_print " - Unpacking Busybox files...                   ";
-BBInstaller=/tmp/CryptX/busybox
+BBInstaller=/tmp/EncryptX/busybox
 fi
 ln -s "$BBInstaller" $BBDIR/busybox
 $BBInstaller --install -s $BBDIR
@@ -921,73 +745,58 @@ echo "$PATH" | grep -q "^$BBDIR" || export PATH=$BBDIR:$PATH
 
 
 # -------------------------------------------------------------------
-# CryptX Package Setup Services                       [DO NOT FIDDLE]
+# EncryptX Package Setup Services                     [DO NOT FIDDLE]
 # -------------------------------------------------------------------
 
 unpack_package_files() {
 
 # Delete TMP Package Directory
-rm -rf /tmp/CryptX
+rm -rf /tmp/EncryptX
 # Create TMP Package Directory
-mkdir -p /tmp/CryptX
-
-if [ -d /data/media/0/CryptX ]; then
-package_extract_sourcefile "CryptX/tools/placeholder" "/data/media/0/CryptX/dev/tmp"
-echo "d3xt3r@console: server session intact. new file deployed" >> /data/media/0/CryptX/devconsole/session_activated
-else
-# Delete TMP Package Directory
-rm -rf /data/media/0/CryptX
-# Create TMP Package Directory
-mkdir -p /data/media/0/CryptX
-
-# Delete TMP Package Directory
-rm -rf /data/media/0/CryptX/devconsole
-# Create TMP Package Directory
-mkdir -p /data/media/0/CryptX/devconsole
-fi
+mkdir -p /tmp/EncryptX
 
 # Extract Source Files
-package_extract_sourcefile "CryptX/tools/busybox" "/tmp/CryptX/busybox"
-package_extract_sourcefile "CryptX/tools/fec" "/tmp/CryptX/fec"
-package_extract_sourcefile "CryptX/tools/httools_static" "/tmp/CryptX/httools_static"
-package_extract_sourcefile "CryptX/tools/lptools_static" "/tmp/CryptX/lptools_static"
-package_extract_sourcefile "CryptX/tools/magiskboot" "/tmp/CryptX/magiskboot"
-package_extract_sourcefile "CryptX/tools/magiskpolicy" "/tmp/CryptX/magiskpolicy"
-package_extract_sourcefile "CryptX/tools/snapshotupdater_static" "/tmp/CryptX/snapshotupdater_static"
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/$FILE_INFO"
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/user_serial_verified"
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/user_serial_unverified"
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/user_soc_serial_verified"
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/user_soc_serial_unverified"
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/device_model_verified"
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/device_model_unverified"
-if [ $CryptXModule_ACTIVATE_CRS = 1 ]; then
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/recovery_version_verified"
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/recovery_version_unverified"
+package_extract_sourcefile "EncryptX/tools/busybox" "/tmp/EncryptX/busybox"
+package_extract_sourcefile "EncryptX/tools/fec" "/tmp/EncryptX/fec"
+package_extract_sourcefile "EncryptX/tools/httools_static" "/tmp/EncryptX/httools_static"
+package_extract_sourcefile "EncryptX/tools/lptools_static" "/tmp/EncryptX/lptools_static"
+package_extract_sourcefile "EncryptX/tools/magiskboot" "/tmp/EncryptX/magiskboot"
+package_extract_sourcefile "EncryptX/tools/magiskpolicy" "/tmp/EncryptX/magiskpolicy"
+package_extract_sourcefile "EncryptX/tools/snapshotupdater_static" "/tmp/EncryptX/snapshotupdater_static"
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/$FILE_INFO"
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/user_serial_verified"
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/user_serial_unverified"
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/user_soc_serial_verified"
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/user_soc_serial_unverified"
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/device_model_verified"
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/device_model_unverified"
+if [ $EncryptXModule_ACTIVATE_CRS = 1 ]; then
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/recovery_version_verified"
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/recovery_version_unverified"
 else
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/recovery_checker_locked"
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/recovery_checker_locked"
 fi
 
-chmod 755 /tmp/CryptX/busybox
-chmod 755 /tmp/CryptX/fec
-chmod 755 /tmp/CryptX/httools_static
-chmod 755 /tmp/CryptX/lptools_static
-chmod 755 /tmp/CryptX/magiskboot
-chmod 755 /tmp/CryptX/magiskpolicy
-chmod 755 /tmp/CryptX/snapshotupdater_static
-chmod 755 /tmp/CryptX/user_serial_verified
-chmod 755 /tmp/CryptX/user_serial_unverified
-chmod 755 /tmp/CryptX/user_soc_serial_verified
-chmod 755 /tmp/CryptX/user_soc_serial_unverified
-chmod 755 /tmp/CryptX/device_model_verified
-chmod 755 /tmp/CryptX/device_model_unverified
-chmod 755 /tmp/CryptX/recovery_version_verified
-chmod 755 /tmp/CryptX/recovery_version_verified
+chmod 755 /tmp/EncryptX/busybox
+chmod 755 /tmp/EncryptX/fec
+chmod 755 /tmp/EncryptX/httools_static
+chmod 755 /tmp/EncryptX/lptools_static
+chmod 755 /tmp/EncryptX/magiskboot
+chmod 755 /tmp/EncryptX/magiskpolicy
+chmod 755 /tmp/EncryptX/snapshotupdater_static
+chmod 755 /tmp/EncryptX/user_serial_verified
+chmod 755 /tmp/EncryptX/user_serial_unverified
+chmod 755 /tmp/EncryptX/user_soc_serial_verified
+chmod 755 /tmp/EncryptX/user_soc_serial_unverified
+chmod 755 /tmp/EncryptX/device_model_verified
+chmod 755 /tmp/EncryptX/device_model_unverified
+chmod 755 /tmp/EncryptX/recovery_version_verified
+chmod 755 /tmp/EncryptX/recovery_version_verified
 
 setup_keycheck_extraction() {
 # Perform Partiality Extraction Case For Keycheck Method!
-package_extract_sourcefile "CryptX/tools/keycheck" "/tmp/CryptX/keycheck"
-copyfile "/tmp/CryptX/keycheck" "/tmp/bin/android/keycheck"
+package_extract_sourcefile "EncryptX/tools/keycheck" "/tmp/EncryptX/keycheck"
+copyfile "/tmp/EncryptX/keycheck" "/tmp/bin/android/keycheck"
 chmod 755 /tmp/bin/android/keycheck
 
 # Revise Directory 'bin' for keycheck config
@@ -1000,7 +809,7 @@ bin=/tmp/bin/android;
 
 
 # -------------------------------------------------------------------
-# CryptX Next-Gen Activator Sub-Modules Services      [DO NOT FIDDLE]
+# EncryptX Next-Gen Activator Sub-Modules Services    [DO NOT FIDDLE]
 # -------------------------------------------------------------------
 
 # Device Is Dynamic Or Not Config
@@ -1070,17 +879,17 @@ fi
 
 # Check Whether Safety Mode Has To Be Triggered Or Not
 module_activate_safety_mode() {
-rm -f /tmp/CryptX/user_serial_unverified
-rm -f /tmp/CryptX/user_serial_verified
-rm -f /tmp/CryptX/user_soc_serial_unverified
-rm -f /tmp/CryptX/user_soc_serial_verified
-package_extract_sourcefile "CryptX/tools/placeholder" "/tmp/CryptX/user_serial_flash_blocked"
+rm -f /tmp/EncryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_verified
+package_extract_sourcefile "EncryptX/tools/placeholder" "/tmp/EncryptX/user_serial_flash_blocked"
 }
 
-# CryptX Safety Checker Module
+# EncryptX Safety Checker Module
 module_credentials_safety() {
-echo "                                                " >> $log_file
-echo " [-] CryptX Safety Information:                 " >> $log_file
+echo "                                                  " >> $log_file
+echo " [-] EncryptX Safety Information:                 " >> $log_file
 
 if [ $safety_mode_triggered = 0 ]; then
 echo "  > Your Data Is Correctly Registered, You May  " >> $log_file
@@ -1091,7 +900,7 @@ if [ $safety_mode_triggered = 1 ]; then
 echo "  > Your Data Is Incorrectly Registered.        " >> $log_file
 echo "    Do Not Proceed To Flash The ROM! Contact    " >> $log_file
 echo "    Security Developer As Soon As Possible!     " >> $log_file
-echo "  ! CryptX Services Have Locked Flashing Our    " >> $log_file
+echo "  ! EncryptX Services Have Locked Flashing Our  " >> $log_file
 echo "    ROM For Device Safety Purposes.             " >> $log_file
 module_activate_safety_mode
 else
@@ -1100,7 +909,7 @@ echo "  > Your Data Is Not Registered At All.         " >> $log_file
 echo "    Your Wish If You Need To Flash The ROM Or   " >> $log_file
 echo "    Not I/My Team Won't Be Responsible If You   " >> $log_file
 echo "    End Up Hard-Bricking Your Device!!          " >> $log_file
-echo "  > Secured With #CryptX                        " >> $log_file
+echo "  > Secured With #EncryptX                      " >> $log_file
 fi
 fi
 fi
@@ -1109,25 +918,25 @@ fi
 # Check Device Model Supported Or Not
 check_device_model() {
 if [ "$TARGET_DEVICE" == "beryllium" ]; then
-rm -f /tmp/CryptX/device_model_unverified
+rm -f /tmp/EncryptX/device_model_unverified
 database_index_beryllium
 else
 if [ "$TARGET_DEVICE" == "marble" ] || [ "$TARGET_DEVICE" == "marble_in" ] || [ "$TARGET_DEVICE" == "marble_cn" ] || [ "$TARGET_DEVICE" == "marble_global" ] || [ "$TARGET_DEVICE" == "marblein" ]; then
-rm -f /tmp/CryptX/device_model_unverified
+rm -f /tmp/EncryptX/device_model_unverified
 database_index_marble
 else
 if [ "$TARGET_DEVICE" == "redwood" ] || [ "$TARGET_DEVICE" == "redwood_in" ] || [ "$TARGET_DEVICE" == "redwood_cn" ] || [ "$TARGET_DEVICE" == "redwood_global" ] || [ "$TARGET_DEVICE" == "redwoodin" ]; then
-rm -f /tmp/CryptX/device_model_unverified
+rm -f /tmp/EncryptX/device_model_unverified
 database_index_redwood
 else
 if [ "$TARGET_DEVICE" == "garnet" ] || [ "$TARGET_DEVICE" == "garnet_in" ] || [ "$TARGET_DEVICE" == "garnet_cn" ] || [ "$TARGET_DEVICE" == "garnet_global" ] || [ "$TARGET_DEVICE" == "garnetin" ] || [ "$TARGET_DEVICE" == "garnetp" ] || [ "$TARGET_DEVICE" == "garnetp_in" ] || [ "$TARGET_DEVICE" == "garnetp_global" ] || [ "$TARGET_DEVICE" == "garnetp_cn" ]; then
-rm -f /tmp/CryptX/device_model_unverified
+rm -f /tmp/EncryptX/device_model_unverified
 else
-rm -f /tmp/CryptX/device_model_verified
+rm -f /tmp/EncryptX/device_model_verified
 fi
 fi
 fi
-rm -f /tmp/CryptX/device_model_verified
+rm -f /tmp/EncryptX/device_model_verified
 fi
 }
 
@@ -1156,7 +965,7 @@ sleep 0.2;
 else
 ui_print " ";
 ui_print " - Make Sure To Join Our Channel For More Info: ";
-ui_print " > https://t.me/CryptXSecurity                  ";
+ui_print " > https://t.me/EncryptXSecurity                ";
 ui_print " ";
 ui_print " > Ending Flash Here, Proceed To Flash ROM Now..";
 ui_print " ";
@@ -1186,7 +995,7 @@ fi
 
 # Check Wether User Wants Volume Key Support Module Or Not
 module_setup_vks() {
-if [ $CryptXModule_ACTIVATE_VKS = 1 ]; then
+if [ $EncryptXModule_ACTIVATE_VKS = 1 ]; then
 setup_vks_module
 load_content_vks_module
 else
@@ -1198,11 +1007,11 @@ fi
 module_setup_crs() {
 ui_print " - Your Recovery Statistics:                    ";
 sleep 2;
-ui_print " > Version: $CryptX_Recovery_Version | $CXRVC   ";
+ui_print " > Version: $EncryptX_Recovery_Version | $CXRVC ";
 sleep 0.2
-ui_print " > Variant: $CryptX_Recovery_Variant            ";
+ui_print " > Variant: $EncryptX_Recovery_Variant          ";
 sleep 0.2
-ui_print " > Updated: $CryptX_Recovery_BIDInfo            ";
+ui_print " > Updated: $EncryptX_Recovery_BIDInfo          ";
 
 sleep 0.2
 ui_print " ";
@@ -1212,29 +1021,29 @@ sleep 0.2
 
 if [ $CXRVC < $CX_MINC ] && [ $CXRVC > $CX_MAXC ]; then
 ui_print " > All Parameters Are Fine                      ";
-rm -rf /tmp/CryptX/recovery_version_unverified
+rm -rf /tmp/EncryptX/recovery_version_unverified
 elif [ $CXRVC > $CX_MINC ]; then
-ui_print " > You Are Using A Lower Version Of CryptX      ";
+ui_print " > You Are Using A Lower Version Of EncryptX    ";
 ui_print "   Recovery, Please Flash Higher Version        ";
 ui_print "   To Proceed Flashing.                         ";
-rm -rf /tmp/CryptX/recovery_version_verified
+rm -rf /tmp/EncryptX/recovery_version_verified
 abort_status=1;
-abort_reason="Please Flash Higher Version Of CryptX Recovery!"
+abort_reason="Please Flash Higher Version Of EncryptX Recovery!"
 abort;
 elif [ $CXRVC < $CX_MAXC ]; then
-ui_print " > You Are Using A Higher Version Of CryptX     ";
+ui_print " > You Are Using A Higher Version Of EncryptX   ";
 ui_print "   Recovery, Please Flash Lower Version To      ";
 ui_print "   Proceed Flashing.                            ";
-rm -rf /tmp/CryptX/recovery_version_verified
+rm -rf /tmp/EncryptX/recovery_version_verified
 abort_status=1;
-abort_reason="Please Flash Lower Version Of CryptX Recovery!"
+abort_reason="Please Flash Lower Version Of EncryptX Recovery!"
 abort;
 fi
 }
 
 # Module: Volume Key Selector Config(s)
 module_vks_info() {
-if [ $CryptXModule_ACTIVATE_VKS = 1 ]; then
+if [ $EncryptXModule_ACTIVATE_VKS = 1 ]; then
 echo "  > This Feature Is Bundled With This Activator " >> $log_file
 echo "    Version!                                    " >> $log_file
 else
@@ -1243,9 +1052,9 @@ echo "    Activator Version!                          " >> $log_file
 fi
 } 
 
-# Module: CryptX Recovery Support Config(s)
+# Module: EncryptX Recovery Support Config(s)
 module_crs_info() {
-if [ $CryptXModule_ACTIVATE_CRS = 1 ]; then
+if [ $EncryptXModule_ACTIVATE_CRS = 1 ]; then
 echo "  > This Feature Is Bundled With This Activator " >> $log_file
 echo "    Version!                                    " >> $log_file
 else
@@ -1256,7 +1065,7 @@ fi
 
 # Module: Disable Log Service Config(s)
 module_dls_info() {
-if [ $CryptXModule_ACTIVATE_CLS = 1 ]; then
+if [ $EncryptXModule_ACTIVATE_CLS = 1 ]; then
 echo "  > This Feature Is Bundled With This Activator " >> $log_file
 echo "    Version!                                    " >> $log_file
 else
@@ -1267,7 +1076,7 @@ fi
 
 # Module: Preview Device Confidential Details Config(s)
 module_usd_info() {
-if [ $CryptXModule_ACTIVATE_USD = 1 ]; then
+if [ $EncryptXModule_ACTIVATE_USD = 1 ]; then
 echo "  > This Feature Is Bundled With This Activator " >> $log_file
 echo "    Version!                                    " >> $log_file
 else
@@ -1278,7 +1087,7 @@ fi
 
 # Module: Hard-Brick Device Config(s)
 module_hbd_info() {
-if [ $CryptXModule_ACTIVATE_HBD = 1 ]; then
+if [ $EncryptXModule_ACTIVATE_HBD = 1 ]; then
 echo "  > This Feature Is Bundled With This Activator " >> $log_file
 echo "    Version!                                    " >> $log_file
 else
@@ -1291,7 +1100,7 @@ fi
 
 
 # -------------------------------------------------------------------
-# CryptX Partition(s) Variables                       [DO NOT FIDDLE]
+# EncryptX Partition(s) Variables                     [DO NOT FIDDLE]
 # -------------------------------------------------------------------
 
 # Config To Mount Partitions
@@ -1327,8 +1136,8 @@ is_mounted_rw() {
   local startswith=$(beginswith / "$1")
   test "$startswith" == "false" && part=/"$1" || part="$1"
   touch "$part"/.rw && rm "$part"/.rw && mounted_rw=true
-  # echo "  > Checked If $part/.rw Is Writable i.e.       " >> /data/media/0/CryptX/CryptX.log
-  # echo "    $mounted_rw ($1/.rw being original argument)" >> /data/media/0/CryptX/CryptX.log
+  # echo "  > Checked If $part/.rw Is Writable i.e.       " >> /data/media/0/EncryptX/EncryptX.log
+  # echo "    $mounted_rw ($1/.rw being original argument)" >> /data/media/0/EncryptX/EncryptX.log
   echo $mounted_rw
 }
 
@@ -1343,7 +1152,7 @@ mount_all() {
     $BB mount /data && UMOUNT_DATA=1
   else
     ui_print " > /data is already mounted!                    ";
-    # echo "  > /data Is Already Mounted!                   " >> /data/media/0/CryptX/CryptX.log
+    # echo "  > /data Is Already Mounted!                   " >> /data/media/0/EncryptX/EncryptX.log
   fi;
 
   (for mount in /vendor /product /system_ext /persist; do
@@ -1353,17 +1162,17 @@ mount_all() {
   done) 2>/dev/null;
   
   # ui_print " ";
-  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  # echo "                                                " >> /data/media/0/EncryptX/EncryptX.log
   #ui_print " - Mounting $ANDROID_ROOT                       ";
   #ui_print " - Setting up Mount Point $ANDROID_ROOT         ";
   #ui_print " > ANDROID_ROOT=$ANDROID_ROOT                   ";
-  # echo "  > Setting Up Mount Point $ANDROID_ROOT        " >> /data/media/0/CryptX/CryptX.log
-  # echo "  > ANDROID_ROOT=$ANDROID_ROOT                  " >> /data/media/0/CryptX/CryptX.log
+  # echo "  > Setting Up Mount Point $ANDROID_ROOT        " >> /data/media/0/EncryptX/EncryptX.log
+  # echo "  > ANDROID_ROOT=$ANDROID_ROOT                  " >> /data/media/0/EncryptX/EncryptX.log
   setup_mountpoint "$ANDROID_ROOT"
   if ! is_mounted "$ANDROID_ROOT"; then
     mount -o ro -t auto "$ANDROID_ROOT" 2>/dev/null
   fi
-  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  # echo "                                                " >> /data/media/0/EncryptX/EncryptX.log
   byname=bootdevice/by-name;
   [ -d /dev/block/$byname ] || byname=$($BB find /dev/block/platform -type d -name by-name 2>/dev/null | $BB head -n1 | $BB cut -d/ -f4-);
   [ -d /dev/block/mapper ] && byname=mapper && addToGeneralLog "- Device with dynamic partitions Found" "$mountLog";
@@ -1374,28 +1183,28 @@ mount_all() {
       if ! is_mounted /system && ! is_mounted /system_root; then
         setup_mountpoint /system_root;
 		#ui_print "  > Mounting /system_root as Readwrite!         ";  
-		# echo "  > Mounting /system_root Partition As Readwrite" >> /data/media/0/CryptX/CryptX.log
+		# echo "  > Mounting /system_root Partition As Readwrite" >> /data/media/0/EncryptX/EncryptX.log
         $BB mount -o rw -t auto /system_root;
       elif [ -f /system/system/build.prop ]; then
         setup_mountpoint /system_root;
 		#ui_print " > Moving /system to /system_root                ";
-      	# echo "  > Moving /system to /system_root              " >> /data/media/0/CryptX/CryptX.log
+      	# echo "  > Moving /system to /system_root              " >> /data/media/0/EncryptX/EncryptX.log
         $BB mount --move /system /system_root;
       fi;
       ret=$?
 	  #ui_print " > Command Execution Status: $ret                ";
-	  echo "  > Command Execution Status: $ret              " >> /data/media/0/CryptX/CryptX.log
+	  echo "  > Command Execution Status: $ret              " >> /data/media/0/EncryptX/EncryptX.log
       #if [ $ret -ne 0 ]; then
 	   # ui_print " > Command Execution Status: $ret                ";
 	    #ui_print " - Unmounting, Remounting /system As /system_root";
-		# echo "  > Unmounting And Remounting /system As        " >> /data/media/0/CryptX/CryptX.log
-	    # echo "    /system_root                                " >> /data/media/0/CryptX/CryptX.log
+		# echo "  > Unmounting And Remounting /system As        " >> /data/media/0/EncryptX/EncryptX.log
+	    # echo "    /system_root                                " >> /data/media/0/EncryptX/EncryptX.log
 
         #($BB umount /system;
         #$BB umount -l /system) 2>/dev/null
         #$BB mount -o ro -t auto /dev/block/$byname/system$slot /system_root;
       #else
-     	 # echo "  > $ret = 0                                    " >> /data/media/0/CryptX/CryptX.log
+     	 # echo "  > $ret = 0                                    " >> /data/media/0/EncryptX/EncryptX.log
      # fi
     ;;
   esac;
@@ -1408,41 +1217,41 @@ mount_all() {
   done;
   #ui_print " ";
   #ui_print " > Checking If /system_root Is Mounted...        ";
-  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
-  # echo "  > Checking if /system_root Is Mounted...      " >> /data/media/0/CryptX/CryptX.log
+  # echo "                                                " >> /data/media/0/EncryptX/EncryptX.log
+  # echo "  > Checking if /system_root Is Mounted...      " >> /data/media/0/EncryptX/EncryptX.log
   if is_mounted /system_root; then
 #    mount_apex;
     $BB mount -o bind /system_root$system /system;
   elif is_mounted /system; then
     $BB mount -o ro -t auto /dev/block/bootdevice/by-name/system /system;
-    echo "  > /system Is Already Mounted!                 " >> /data/media/0/CryptX/CryptX.log
+    echo "  > /system Is Already Mounted!                 " >> /data/media/0/EncryptX/EncryptX.log
   fi;
   if ! is_mounted /persist && [ -e /dev/block/bootdevice/by-name/persist ]; then
     setup_mountpoint /persist;
     $BB mount -o ro -t auto /dev/block/bootdevice/by-name/persist /persist;
   fi;
-  echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  echo "                                                " >> /data/media/0/EncryptX/EncryptX.log
   system=/system
   if [ -d /dev/block/mapper ]; then
    # ui_print " ";
 	#ui_print " - Executing Blockdev SetRW For:                 ";
 	#ui_print "   /dev/block/mapper/system, vendor, product,    ";
 	#ui_print "   system_ext For Both Slots A And B!            ";
-    # echo "  > Executing Blockdev SetRW For                " >> /data/media/0/CryptX/CryptX.log
-    # echo "    /dev/block/mapper/system, vendor, product,  " >> /data/media/0/CryptX/CryptX.log
-    # echo "    system_ext For Both Slots A And B!          " >> /data/media/0/CryptX/CryptX.log
+    # echo "  > Executing Blockdev SetRW For                " >> /data/media/0/EncryptX/EncryptX.log
+    # echo "    /dev/block/mapper/system, vendor, product,  " >> /data/media/0/EncryptX/EncryptX.log
+    # echo "    system_ext For Both Slots A And B!          " >> /data/media/0/EncryptX/EncryptX.log
     for block in system vendor product system_ext; do
       for slot in "" _a _b; do
         blockdev --setrw /dev/block/mapper/$block$slot 2>/dev/null
       done
     done
   #ui_print " ";
-  # echo "                                                " >> /data/media/0/CryptX/CryptX.log
+  # echo "                                                " >> /data/media/0/EncryptX/EncryptX.log
   fi
   mount -o rw,remount -t auto /system || $BB mount -o rw,remount -t auto /
   for partition in "vendor" "product" "system_ext"; do
    # ui_print " - Remounting /$partition as Readwrite...        ";
-    # echo "  > Remounting /$partition as ReadWrite         " >> /data/media/0/CryptX/CryptX.log
+    # echo "  > Remounting /$partition as ReadWrite         " >> /data/media/0/EncryptX/EncryptX.log
     $BB mount -o rw,remount -t auto "/$partition" 2>/dev/null
   done
   if [ -n "$PRODUCT_BLOCK" ]; then
@@ -1450,14 +1259,14 @@ mount_all() {
       mkdir /product || true
       if $BB mount -o rw "$PRODUCT_BLOCK" /product; then
 	 	ui_print " > /product Mounted Successfully!                ";
-		# echo "  > /product Mounted Successfully!              " >> /data/media/0/CryptX/CryptX.log
+		# echo "  > /product Mounted Successfully!              " >> /data/media/0/EncryptX/EncryptX.log
       else
 	  	ui_print " > /product Failed To Mount!                     ";
-		# echo "  > /product Failed To Mount!                   " >> /data/media/0/CryptX/CryptX.log
+		# echo "  > /product Failed To Mount!                   " >> /data/media/0/EncryptX/EncryptX.log
       fi
     else
 		ui_print " > /product Is Already Mounted!                  ";
-		# echo "  > /product Is Already Mounted!                " >> /data/media/0/CryptX/CryptX.log
+		# echo "  > /product Is Already Mounted!                " >> /data/media/0/EncryptX/EncryptX.log
     fi
   fi
   if [ -n "$SYSTEM_EXT_BLOCK" ]; then
@@ -1465,17 +1274,17 @@ mount_all() {
       mkdir /system_ext || true
       if $BB mount -o rw "$SYSTEM_EXT_BLOCK" /system_ext; then
 	  	ui_print " > /system_ext Mounted Successfully!             ";
-		# echo "  > /system_ext Mounted Successfully!           " >> /data/media/0/CryptX/CryptX.log
+		# echo "  > /system_ext Mounted Successfully!           " >> /data/media/0/EncryptX/EncryptX.log
       else
 	  	ui_print " > /system_ext Failed To Mount!                  ";
-		# echo "  > /system_ext Failed To Mount!                " >> /data/media/0/CryptX/CryptX.log
+		# echo "  > /system_ext Failed To Mount!                " >> /data/media/0/EncryptX/EncryptX.log
       fi
     else
 		ui_print " > /system_ext Is Already Mounted!               ";
-		# echo "  > /system_ext Is Already Mounted!             " >> /data/media/0/CryptX/CryptX.log
+		# echo "  > /system_ext Is Already Mounted!             " >> /data/media/0/EncryptX/EncryptX.log
     fi
   fi
-#  echo "                                                " >> /data/media/0/CryptX/CryptX.log
+#  echo "                                                " >> /data/media/0/EncryptX/EncryptX.log
 }
 
 # More info on Apex here -> https://www.xda-developers.com/android-q-apex-biggest-tdynamic_partitionshing-since-project-treble/
@@ -1551,7 +1360,7 @@ umount_all() {
   local mount;
   (if [ ! -d /postinstall/tmp ]; then
    # ui_print " - Unmounting /system                           ";
-	# echo "  > /system Unmounted Successfully!             " >> /data/media/0/CryptX/CryptX.log
+	# echo "  > /system Unmounted Successfully!             " >> /data/media/0/EncryptX/EncryptX.log
     $BB umount /system;
     $BB umount -l /system;
   fi) 2>/dev/null;
@@ -1559,23 +1368,23 @@ umount_all() {
 #  umount_apex; # we're not using apex so there is no need to unmount it for now.
   (if [ ! -d /postinstall/tmp ]; then
    # ui_print " - Unmounting /system_root...                   ";
-	# echo "  > /system_root Unmounted Successfully!        " >> /data/media/0/CryptX/CryptX.log
+	# echo "  > /system_root Unmounted Successfully!        " >> /data/media/0/EncryptX/EncryptX.log
     $BB umount /system_root;
     $BB umount -l /system_root;
   fi;
   #ui_print " - Unmounting /vendor...                        ";
-  # echo "  > /vendor Unmounted Successfully!             " >> /data/media/0/CryptX/CryptX.log
+  # echo "  > /vendor Unmounted Successfully!             " >> /data/media/0/EncryptX/EncryptX.log
 
   umount /vendor; # busybox umount /vendor breaks recovery on some hacky devices
   umount -l /vendor;
   for mount in /mnt/system /mnt/vendor /product /mnt/product /system_ext /mnt/system_ext /persist; do
-    #echo "  > $mount Unmounted Successfully!              " >> /data/media/0/CryptX/CryptX.log
+    #echo "  > $mount Unmounted Successfully!              " >> /data/media/0/EncryptX/EncryptX.log
     $BB umount $mount;
     $BB umount -l $mount;
   done;
   if [ "$UMOUNT_DATA" ]; then
 	#ui_print " - Unmounting /data...                          ";
-    # echo "  > /data Unmounted Successfully!               " >> /data/media/0/CryptX/CryptX.log
+    # echo "  > /data Unmounted Successfully!               " >> /data/media/0/EncryptX/EncryptX.log
     $BB umount /data;
     $BB umount -l /data;
   fi
@@ -1611,750 +1420,27 @@ umount_apex() {
 
 
 # -------------------------------------------------------------------
-# CryptX Database Index                               [DO NOT FIDDLE]
+# EncryptX Database Index                             [DO NOT FIDDLE]
 # -------------------------------------------------------------------
 
-#  Index Crucial Database Information Chart
+#  Index Crucial Database Information
 
-# Database Index For Beryllium
-database_index_beryllium() {
-# beryllium | @BlazeWizardOP
-user001_dataid="Beryllium-001";
-user001_serial="4b1dc5eb";
-user001_socserial="1738827153";
-user001_name="Blaze | AFK";
-user001_username="@BlazeWizardOP";
-user001_devicecode="beryllium";
-}
-
-# Database Index For Redwood
-database_index_redwood() {
-# redwood | @DevilNoobIN
-user001_dataid="Redwood-001";
-user001_serial="3415b50a";
-user001_socserial="2630359867";
-user001_name="Dilip Kumar";
-user001_username="@DevilNoobIN";
-user001_devicecode="redwood";
-
-# redwood | @
-user002_dataid="Redwood-002";
-user002_serial=" ";
-user002_socserial=" ";
-user002_name=" ";
-user002_username="@";
-user002_devicecode="redwood";
-
-# redwood | @
-user003_dataid="Redwood-003";
-user003_serial=" ";
-user003_socserial=" ";
-user003_name=" ";
-user003_username="@";
-user003_devicecode="redwood";
-
-# redwood | @
-user004_dataid="Redwood-004";
-user004_serial=" ";
-user004_socserial=" ";
-user004_name=" ";
-user004_username="@";
-user004_devicecode="redwood";
-
-# redwood | @
-user005_dataid="Redwood-005";
-user005_serial=" ";
-user005_socserial=" ";
-user005_name=" ";
-user005_username="@";
-user005_devicecode="redwood";
-
-# redwood | @
-user006_dataid="Redwood-006";
-user006_serial=" ";
-user006_socserial=" ";
-user006_name=" ";
-user006_username="@";
-user006_devicecode="redwood";
-
-# redwood | @
-user007_dataid="Redwood-007";
-user007_serial=" ";
-user007_socserial=" ";
-user007_name=" ";
-user007_username="@";
-user007_devicecode="redwood";
-
-# redwood | @
-user008_dataid="Redwood-008";
-user008_serial=" ";
-user008_socserial=" ";
-user008_name=" ";
-user008_username="@";
-user008_devicecode="redwood";
-
-# redwood | @
-user009_dataid="Redwood-009";
-user009_serial=" ";
-user009_socserial=" ";
-user009_name=" ";
-user009_username="@";
-user009_devicecode="redwood";
-
-# redwood | @
-user010_dataid="Redwood-010";
-user010_serial=" ";
-user010_socserial=" ";
-user010_name=" ";
-user010_username="@";
-user010_devicecode="redwood";
-
-# redwood | @
-user011_dataid="Redwood-011";
-user011_serial=" ";
-user011_socserial=" ";
-user011_name=" ";
-user011_username="@";
-user011_devicecode="redwood";
-
-# redwood | @
-user012_dataid="Redwood-012";
-user012_serial=" ";
-user012_socserial=" ";
-user012_name=" ";
-user012_username="@";
-user012_devicecode="redwood";
-
-# redwood | @
-user013_dataid="Redwood-013";
-user013_serial=" ";
-user013_socserial=" ";
-user013_name=" ";
-user013_username="@";
-user013_devicecode="redwood";
-
-# redwood | @
-user014_dataid="Redwood-014";
-user014_serial=" ";
-user014_socserial=" ";
-user014_name=" ";
-user014_username="@";
-user014_devicecode="redwood";
-
-# redwood | @
-user015_dataid="Redwood-015";
-user015_serial=" ";
-user015_socserial=" ";
-user015_name=" ";
-user015_username="@";
-user015_devicecode="redwood";
-
-# redwood | @
-user016_dataid="Redwood-016";
-user016_serial=" ";
-user016_socserial=" ";
-user016_name=" ";
-user016_username="@";
-user016_devicecode="redwood";
-
-# redwood | @
-user017_dataid="Redwood-017";
-user017_serial=" ";
-user017_socserial=" ";
-user017_name=" ";
-user017_username="@";
-user017_devicecode="redwood";
-
-# redwood | @
-user018_dataid="Redwood-018";
-user018_serial=" ";
-user018_socserial=" ";
-user018_name=" ";
-user018_username="@";
-user018_devicecode="redwood";
-
-# redwood | @
-user019_dataid="Redwood-019";
-user019_serial=" ";
-user019_socserial=" ";
-user019_name=" ";
-user019_username="@";
-user019_devicecode="redwood";
-
-# redwood | @
-user020_dataid="Redwood-020";
-user020_serial=" ";
-user020_socserial=" ";
-user020_name=" ";
-user020_username="@";
-user020_devicecode="redwood";
-
-# redwood | @
-user021_dataid="Redwood-021";
-user021_serial=" ";
-user021_socserial=" ";
-user021_name=" ";
-user021_username="@";
-user021_devicecode="redwood";
-
-# redwood | @
-user022_dataid="Redwood-022";
-user022_serial=" ";
-user022_socserial=" ";
-user022_name=" ";
-user022_username="@";
-user022_devicecode="redwood";
-
-# redwood | @
-user023_dataid="Redwood-023";
-user023_serial=" ";
-user023_socserial=" ";
-user023_name=" ";
-user023_username="@";
-user023_devicecode="redwood";
-
-# redwood | @
-user024_dataid="Redwood-024";
-user024_serial=" ";
-user024_socserial=" ";
-user024_name=" ";
-user024_username="@";
-user024_devicecode="redwood";
-
-# redwood | @
-user025_dataid="Redwood-025";
-user025_serial=" ";
-user025_socserial=" ";
-user025_name=" ";
-user025_username="@";
-user025_devicecode="redwood";
-
-# redwood | @
-user026_dataid="Redwood-026";
-user026_serial=" ";
-user026_socserial=" ";
-user026_name=" ";
-user026_username="@";
-user026_devicecode="redwood";
-
-# redwood | @
-user027_dataid="Redwood-027";
-user027_serial=" ";
-user027_socserial=" ";
-user027_name=" ";
-user027_username="@";
-user027_devicecode="redwood";
-
-# redwood | @
-user028_dataid="Redwood-028";
-user028_serial=" ";
-user028_socserial=" ";
-user028_name=" ";
-user028_username="@";
-user028_devicecode="redwood";
-
-# redwood | @
-user029_dataid="Redwood-029";
-user029_serial=" ";
-user029_socserial=" ";
-user029_name=" ";
-user029_username="@";
-user029_devicecode="redwood";
-
-# redwood | @
-user030_dataid="Redwood-030";
-user030_serial=" ";
-user030_socserial=" ";
-user030_name=" ";
-user030_username="@";
-user030_devicecode="redwood";
-}
-
-# Database Index For Marble
-database_index_marble() {
-# marble | @umangpandya01
-user001_dataid="Marble-001";
-user001_serial="fce7a16d";
-user001_socserial="0x0000043b8a18a3e8";
-user001_name="Umang Pandya";
-user001_username="@umangpandya01";
-user001_devicecode="marble";
-
-# marble | @gourav_dharuhera
-user002_dataid="Marble-002";
-user002_serial="ff272296";
-user002_socserial="0x0000043bfd08e3ad";
-user002_name="Gourav Dharuhera";
-user002_username="@gourav_dharuhera";
-user002_devicecode="marble";
-
-# marble | @
-user003_dataid="Marble-003";
-user003_serial=" ";
-user003_socserial=" ";
-user003_name=" ";
-user003_username="@";
-user003_devicecode="marble";
-
-# marble | @
-user004_dataid="Marble-004";
-user004_serial=" ";
-user004_socserial=" ";
-user004_name=" ";
-user004_username="@";
-user004_devicecode="marble";
-
-# marble | @
-user005_dataid="Marble-005";
-user005_serial=" ";
-user005_socserial=" ";
-user005_name=" ";
-user005_username="@";
-user005_devicecode="marble";
-
-# marble | @
-user006_dataid="Marble-006";
-user006_serial=" ";
-user006_socserial=" ";
-user006_name=" ";
-user006_username="@";
-user006_devicecode="marble";
-
-# marble | @
-user007_dataid="Marble-007";
-user007_serial=" ";
-user007_socserial=" ";
-user007_name=" ";
-user007_username="@";
-user007_devicecode="marble";
-
-# marble | @
-user008_dataid="Marble-008";
-user008_serial=" ";
-user008_socserial=" ";
-user008_name=" ";
-user008_username="@";
-user008_devicecode="marble";
-
-# marble | @
-user009_dataid="Marble-009";
-user009_serial=" ";
-user009_socserial=" ";
-user009_name=" ";
-user009_username="@";
-user009_devicecode="marble";
-
-# marble | @
-user010_dataid="Marble-010";
-user010_serial=" ";
-user010_socserial=" ";
-user010_name=" ";
-user010_username="@";
-user010_devicecode="marble";
-
-# marble | @
-user011_dataid="Marble-011";
-user011_serial=" ";
-user011_socserial=" ";
-user011_name=" ";
-user011_username="@";
-user011_devicecode="marble";
-
-# marble | @
-user012_dataid="Marble-012";
-user012_serial=" ";
-user012_socserial=" ";
-user012_name=" ";
-user012_username="@";
-user012_devicecode="marble";
-
-# marble | @
-user013_dataid="Marble-013";
-user013_serial=" ";
-user013_socserial=" ";
-user013_name=" ";
-user013_username="@";
-user013_devicecode="marble";
-
-# marble | @
-user014_dataid="Marble-014";
-user014_serial=" ";
-user014_socserial=" ";
-user014_name=" ";
-user014_username="@";
-user014_devicecode="marble";
-
-# marble | @
-user015_dataid="Marble-015";
-user015_serial=" ";
-user015_socserial=" ";
-user015_name=" ";
-user015_username="@";
-user015_devicecode="marble";
-
-# marble | @
-user018_dataid="Marble-018";
-user018_serial=" ";
-user018_socserial=" ";
-user018_name=" ";
-user018_username="@";
-user018_devicecode="marble";
-
-# marble | @
-user019_dataid="Marble-019";
-user019_serial=" ";
-user019_socserial=" ";
-user019_name=" ";
-user019_username="@";
-user019_devicecode="marble";
-
-# marble | @
-user020_dataid="Marble-020";
-user020_serial=" ";
-user020_socserial=" ";
-user020_name=" ";
-user020_username="@";
-user020_devicecode="marble";
-
-# marble | @
-user021_dataid="Marble-021";
-user021_serial=" ";
-user021_socserial=" ";
-user021_name=" ";
-user021_username="@";
-user021_devicecode="marble";
-
-# marble | @
-user022_dataid="Marble-022";
-user022_serial=" ";
-user022_socserial=" ";
-user022_name=" ";
-user022_username="@";
-user022_devicecode="marble";
-
-# marble | @
-user023_dataid="Marble-023";
-user023_serial=" ";
-user023_socserial=" ";
-user023_name=" ";
-user023_username="@";
-user023_devicecode="marble";
-
-# marble | @
-user024_dataid="Marble-024";
-user024_serial=" ";
-user024_socserial=" ";
-user024_name=" ";
-user024_username="@";
-user024_devicecode="marble";
-
-# marble | @
-user025_dataid="Marble-025";
-user025_serial=" ";
-user025_socserial=" ";
-user025_name=" ";
-user025_username="@";
-user025_devicecode="marble";
-
-# marble | @
-user026_dataid="Marble-026";
-user026_serial=" ";
-user026_socserial=" ";
-user026_name=" ";
-user026_username="@";
-user026_devicecode="marble";
-
-# marble | @
-user027_dataid="Marble-027";
-user027_serial=" ";
-user027_socserial=" ";
-user027_name=" ";
-user027_username="@";
-user027_devicecode="marble";
-
-# marble | @
-user028_dataid="Marble-028";
-user028_serial=" ";
-user028_socserial=" ";
-user028_name=" ";
-user028_username="@";
-user028_devicecode="marble";
-
-# marble | @
-user029_dataid="Marble-029";
-user029_serial=" ";
-user029_socserial=" ";
-user029_name=" ";
-user029_username="@";
-user029_devicecode="marble";
-
-# marble | @
-user030_dataid="Marble-030";
-user030_serial=" ";
-user030_socserial=" ";
-user030_name=" ";
-user030_username="@";
-user030_devicecode="marble";
-}
-
-# Database Index For Sweet
-database_index_sweet() {
-# sweet | @
-user001_dataid="Sweet-001";
-user001_serial=" ";
-user001_socserial=" ";
-user001_name=" ";
-user001_username="@";
-user001_devicecode="sweet";
-
-# sweet | @
-user002_dataid="Sweet-002";
-user002_serial=" ";
-user002_socserial=" ";
-user002_name=" ";
-user002_username="@";
-user002_devicecode="sweet";
-
-# sweet | @
-user003_dataid="Sweet-003";
-user003_serial=" ";
-user003_socserial=" ";
-user003_name=" ";
-user003_username="@";
-user003_devicecode="sweet";
-
-# sweet | @
-user004_dataid="Sweet-004";
-user004_serial=" ";
-user004_socserial=" ";
-user004_name=" ";
-user004_username="@";
-user004_devicecode="sweet";
-
-# sweet | @
-user005_dataid="Sweet-005";
-user005_serial=" ";
-user005_socserial=" ";
-user005_name=" ";
-user005_username="@";
-user005_devicecode="sweet";
-
-# sweet | @
-user006_dataid="Sweet-006";
-user006_serial=" ";
-user006_socserial=" ";
-user006_name=" ";
-user006_username="@";
-user006_devicecode="sweet";
-
-# sweet | @
-user007_dataid="Sweet-007";
-user007_serial=" ";
-user007_socserial=" ";
-user007_name=" ";
-user007_username="@";
-user007_devicecode="sweet";
-
-# sweet | @
-user008_dataid="Sweet-008";
-user008_serial=" ";
-user008_socserial=" ";
-user008_name=" ";
-user008_username="@";
-user008_devicecode="sweet";
-
-# sweet | @
-user009_dataid="Sweet-009";
-user009_serial=" ";
-user009_socserial=" ";
-user009_name=" ";
-user009_username="@";
-user009_devicecode="sweet";
-
-# sweet | @
-user010_dataid="Sweet-010";
-user010_serial=" ";
-user010_socserial=" ";
-user010_name=" ";
-user010_username="@";
-user010_devicecode="sweet";
-
-# sweet | @
-user011_dataid="Sweet-011";
-user011_serial=" ";
-user011_socserial=" ";
-user011_name=" ";
-user011_username="@";
-user011_devicecode="sweet";
-
-# sweet | @
-user012_dataid="Sweet-012";
-user012_serial=" ";
-user012_socserial=" ";
-user012_name=" ";
-user012_username="@";
-user012_devicecode="sweet";
-
-# sweet | @
-user013_dataid="Sweet-013";
-user013_serial=" ";
-user013_socserial=" ";
-user013_name=" ";
-user013_username="@";
-user013_devicecode="sweet";
-
-# sweet | @
-user014_dataid="Sweet-014";
-user014_serial=" ";
-user014_socserial=" ";
-user014_name=" ";
-user014_username="@";
-user014_devicecode="sweet";
-
-# sweet | @
-user015_dataid="Sweet-015";
-user015_serial=" ";
-user015_socserial=" ";
-user015_name=" ";
-user015_username="@";
-user015_devicecode="sweet";
-
-# sweet | @
-user016_dataid="Sweet-016";
-user016_serial=" ";
-user016_socserial=" ";
-user016_name=" ";
-user016_username="@";
-user016_devicecode="sweet";
-
-# sweet | @
-user017_dataid="Sweet-017";
-user017_serial=" ";
-user017_socserial=" ";
-user017_name=" ";
-user017_username="@";
-user017_devicecode="sweet";
-
-# sweet | @
-user018_dataid="Sweet-018";
-user018_serial=" ";
-user018_socserial=" ";
-user018_name=" ";
-user018_username="@";
-user018_devicecode="sweet";
-
-# sweet | @
-user019_dataid="Sweet-019";
-user019_serial=" ";
-user019_socserial=" ";
-user019_name=" ";
-user019_username="@";
-user019_devicecode="sweet";
-
-# sweet | @
-user020_dataid="Sweet-020";
-user020_serial=" ";
-user020_socserial=" ";
-user020_name=" ";
-user020_username="@";
-user020_devicecode="sweet";
-
-# sweet | @
-user021_dataid="Sweet-021";
-user021_serial=" ";
-user021_socserial=" ";
-user021_name=" ";
-user021_username="@";
-user021_devicecode="sweet";
-
-# sweet | @
-user022_dataid="Sweet-022";
-user022_serial=" ";
-user022_socserial=" ";
-user022_name=" ";
-user022_username="@";
-user022_devicecode="sweet";
-
-# sweet | @
-user023_dataid="Sweet-023";
-user023_serial=" ";
-user023_socserial=" ";
-user023_name=" ";
-user023_username="@";
-user023_devicecode="sweet";
-
-# sweet | @
-user024_dataid="Sweet-024";
-user024_serial=" ";
-user024_socserial=" ";
-user024_name=" ";
-user024_username="@";
-user024_devicecode="sweet";
-
-# sweet | @
-user025_dataid="Sweet-025";
-user025_serial=" ";
-user025_socserial=" ";
-user025_name=" ";
-user025_username="@";
-user025_devicecode="sweet";
-
-# sweet | @
-user026_dataid="Sweet-026";
-user026_serial=" ";
-user026_socserial=" ";
-user026_name=" ";
-user026_username="@";
-user026_devicecode="sweet";
-
-# sweet | @
-user027_dataid="Sweet-027";
-user027_serial=" ";
-user027_socserial=" ";
-user027_name=" ";
-user027_username="@";
-user027_devicecode="sweet";
-
-# sweet | @
-user028_dataid="Sweet-028";
-user028_serial=" ";
-user028_socserial=" ";
-user028_name=" ";
-user028_username="@";
-user028_devicecode="sweet";
-
-# sweet | @
-user029_dataid="Sweet-029";
-user029_serial=" ";
-user029_socserial=" ";
-user029_name=" ";
-user029_username="@";
-user029_devicecode="sweet";
-
-# sweet | @
-user030_dataid="Sweet-030";
-user030_serial=" ";
-user030_socserial=" ";
-user030_name=" ";
-user030_username="@";
-user030_devicecode="sweet";
-}
 
 # -------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------
-# CryptX User Credentials Checker                  [DO NOT FIDDLE]
+# EncryptX User Credentials Checker                  [DO NOT FIDDLE]
 # -------------------------------------------------------------------
 
 # Check Serial Config For User 001
 check_serial_user001() {
 if [ "$TARGET_SERIAL" == "$user001_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user001_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -2363,11 +1449,11 @@ fi
 # Check SOC Serial Config For User 001
 check_socserial_user001() {
 if [ "$TARGET_SOC_SERIAL" == "$user001_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user001_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -2419,11 +1505,11 @@ fi
 # Check Serial Config For User 002
 check_serial_user002() {
 if [ "$TARGET_SERIAL" == "$user002_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user002_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -2432,11 +1518,11 @@ fi
 # Check SOC Serial Config For User 002
 check_socserial_user002() {
 if [ "$TARGET_SOC_SERIAL" == "$user002_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user002_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -2488,11 +1574,11 @@ fi
 # Check Serial Config For User 003
 check_serial_user003() {
 if [ "$TARGET_SERIAL" == "$user003_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user003_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -2501,11 +1587,11 @@ fi
 # Check SOC Serial Config For User 003
 check_socserial_user003() {
 if [ "$TARGET_SOC_SERIAL" == "$user003_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user003_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -2557,11 +1643,11 @@ fi
 # Check Serial Config For User 004
 check_serial_user004() {
 if [ "$TARGET_SERIAL" == "$user004_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user004_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -2570,11 +1656,11 @@ fi
 # Check SOC Serial Config For User 004
 check_socserial_user004() {
 if [ "$TARGET_SOC_SERIAL" == "$user004_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user004_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -2626,11 +1712,11 @@ fi
 # Check Serial Config For User 005
 check_serial_user005() {
 if [ "$TARGET_SERIAL" == "$user005_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user005_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -2639,11 +1725,11 @@ fi
 # Check SOC Serial Config For User 005
 check_socserial_user005() {
 if [ "$TARGET_SOC_SERIAL" == "$user005_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user005_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -2695,11 +1781,11 @@ fi
 # Check Serial Config For User 006
 check_serial_user006() {
 if [ "$TARGET_SERIAL" == "$user006_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user006_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -2708,11 +1794,11 @@ fi
 # Check SOC Serial Config For User 006
 check_socserial_user006() {
 if [ "$TARGET_SOC_SERIAL" == "$user006_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user006_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -2764,11 +1850,11 @@ fi
 # Check Serial Config For User 007
 check_serial_user007() {
 if [ "$TARGET_SERIAL" == "$user007_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user007_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -2777,11 +1863,11 @@ fi
 # Check SOC Serial Config For User 007
 check_socserial_user007() {
 if [ "$TARGET_SOC_SERIAL" == "$user007_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user007_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -2833,11 +1919,11 @@ fi
 # Check Serial Config For User 008
 check_serial_user008() {
 if [ "$TARGET_SERIAL" == "$user008_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user008_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -2846,11 +1932,11 @@ fi
 # Check SOC Serial Config For User 008
 check_socserial_user008() {
 if [ "$TARGET_SOC_SERIAL" == "$user008_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user008_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -2902,11 +1988,11 @@ fi
 # Check Serial Config For User 009
 check_serial_user009() {
 if [ "$TARGET_SERIAL" == "$user009_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user009_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -2915,11 +2001,11 @@ fi
 # Check SOC Serial Config For User 009
 check_socserial_user009() {
 if [ "$TARGET_SOC_SERIAL" == "$user009_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user009_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -2971,11 +2057,11 @@ fi
 # Check Serial Config For User 010
 check_serial_user010() {
 if [ "$TARGET_SERIAL" == "$user010_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user010_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -2984,11 +2070,11 @@ fi
 # Check SOC Serial Config For User 010
 check_socserial_user010() {
 if [ "$TARGET_SOC_SERIAL" == "$user010_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user010_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3040,11 +2126,11 @@ fi
 # Check Serial Config For User 011
 check_serial_user011() {
 if [ "$TARGET_SERIAL" == "$user011_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user011_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3053,11 +2139,11 @@ fi
 # Check SOC Serial Config For User 011
 check_socserial_user011() {
 if [ "$TARGET_SOC_SERIAL" == "$user011_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user011_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3109,11 +2195,11 @@ fi
 # Check Serial Config For User 012
 check_serial_user012() {
 if [ "$TARGET_SERIAL" == "$user012_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user012_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3122,11 +2208,11 @@ fi
 # Check SOC Serial Config For User 012
 check_socserial_user012() {
 if [ "$TARGET_SOC_SERIAL" == "$user012_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user012_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3178,11 +2264,11 @@ fi
 # Check Serial Config For User 013
 check_serial_user013() {
 if [ "$TARGET_SERIAL" == "$user013_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user013_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3191,11 +2277,11 @@ fi
 # Check SOC Serial Config For User 013
 check_socserial_user013() {
 if [ "$TARGET_SOC_SERIAL" == "$user013_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user013_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3247,11 +2333,11 @@ fi
 # Check Serial Config For User 014
 check_serial_user014() {
 if [ "$TARGET_SERIAL" == "$user014_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user014_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3260,11 +2346,11 @@ fi
 # Check SOC Serial Config For User 014
 check_socserial_user014() {
 if [ "$TARGET_SOC_SERIAL" == "$user014_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user014_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3316,11 +2402,11 @@ fi
 # Check Serial Config For User 015
 check_serial_user015() {
 if [ "$TARGET_SERIAL" == "$user015_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user015_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3329,11 +2415,11 @@ fi
 # Check SOC Serial Config For User 015
 check_socserial_user015() {
 if [ "$TARGET_SOC_SERIAL" == "$user015_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user015_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3385,11 +2471,11 @@ fi
 # Check Serial Config For User 016
 check_serial_user016() {
 if [ "$TARGET_SERIAL" == "$user016_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user016_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3398,11 +2484,11 @@ fi
 # Check SOC Serial Config For User 016
 check_socserial_user016() {
 if [ "$TARGET_SOC_SERIAL" == "$user016_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user016_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3454,11 +2540,11 @@ fi
 # Check Serial Config For User 017
 check_serial_user017() {
 if [ "$TARGET_SERIAL" == "$user017_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user017_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3467,11 +2553,11 @@ fi
 # Check SOC Serial Config For User 017
 check_socserial_user017() {
 if [ "$TARGET_SOC_SERIAL" == "$user017_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user017_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3523,11 +2609,11 @@ fi
 # Check Serial Config For User 018
 check_serial_user018() {
 if [ "$TARGET_SERIAL" == "$user018_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user018_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3536,11 +2622,11 @@ fi
 # Check SOC Serial Config For User 018
 check_socserial_user018() {
 if [ "$TARGET_SOC_SERIAL" == "$user018_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user018_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3592,11 +2678,11 @@ fi
 # Check Serial Config For User 019
 check_serial_user019() {
 if [ "$TARGET_SERIAL" == "$user019_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user019_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3605,11 +2691,11 @@ fi
 # Check SOC Serial Config For User 019
 check_socserial_user019() {
 if [ "$TARGET_SOC_SERIAL" == "$user019_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user019_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3661,11 +2747,11 @@ fi
 # Check Serial Config For User 020
 check_serial_user020() {
 if [ "$TARGET_SERIAL" == "$user020_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user020_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3674,11 +2760,11 @@ fi
 # Check SOC Serial Config For User 020
 check_socserial_user020() {
 if [ "$TARGET_SOC_SERIAL" == "$user020_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user020_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3730,11 +2816,11 @@ fi
 # Check Serial Config For User 021
 check_serial_user021() {
 if [ "$TARGET_SERIAL" == "$user021_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user021_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3743,11 +2829,11 @@ fi
 # Check SOC Serial Config For User 021
 check_socserial_user021() {
 if [ "$TARGET_SOC_SERIAL" == "$user021_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user021_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3799,11 +2885,11 @@ fi
 # Check Serial Config For User 022
 check_serial_user022() {
 if [ "$TARGET_SERIAL" == "$user022_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user022_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3812,11 +2898,11 @@ fi
 # Check SOC Serial Config For User 022
 check_socserial_user022() {
 if [ "$TARGET_SOC_SERIAL" == "$user022_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user022_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3868,11 +2954,11 @@ fi
 # Check Serial Config For User 023
 check_serial_user023() {
 if [ "$TARGET_SERIAL" == "$user023_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user023_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3881,11 +2967,11 @@ fi
 # Check SOC Serial Config For User 023
 check_socserial_user023() {
 if [ "$TARGET_SOC_SERIAL" == "$user023_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user023_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -3937,11 +3023,11 @@ fi
 # Check Serial Config For User 024
 check_serial_user024() {
 if [ "$TARGET_SERIAL" == "$user024_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user024_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -3950,11 +3036,11 @@ fi
 # Check SOC Serial Config For User 024
 check_socserial_user024() {
 if [ "$TARGET_SOC_SERIAL" == "$user024_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user024_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -4006,11 +3092,11 @@ fi
 # Check Serial Config For User 025
 check_serial_user025() {
 if [ "$TARGET_SERIAL" == "$user025_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user025_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -4019,11 +3105,11 @@ fi
 # Check SOC Serial Config For User 025
 check_socserial_user025() {
 if [ "$TARGET_SOC_SERIAL" == "$user025_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user025_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -4075,11 +3161,11 @@ fi
 # Check Serial Config For User 026
 check_serial_user026() {
 if [ "$TARGET_SERIAL" == "$user026_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user026_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -4088,11 +3174,11 @@ fi
 # Check SOC Serial Config For User 026
 check_socserial_user026() {
 if [ "$TARGET_SOC_SERIAL" == "$user026_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user026_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -4144,11 +3230,11 @@ fi
 # Check Serial Config For User 027
 check_serial_user027() {
 if [ "$TARGET_SERIAL" == "$user027_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user027_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -4157,11 +3243,11 @@ fi
 # Check SOC Serial Config For User 027
 check_socserial_user027() {
 if [ "$TARGET_SOC_SERIAL" == "$user027_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user027_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -4213,11 +3299,11 @@ fi
 # Check Serial Config For User 028
 check_serial_user028() {
 if [ "$TARGET_SERIAL" == "$user028_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user028_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -4226,11 +3312,11 @@ fi
 # Check SOC Serial Config For User 028
 check_socserial_user028() {
 if [ "$TARGET_SOC_SERIAL" == "$user028_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user028_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -4282,11 +3368,11 @@ fi
 # Check Serial Config For User 029
 check_serial_user029() {
 if [ "$TARGET_SERIAL" == "$user029_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user029_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -4295,11 +3381,11 @@ fi
 # Check SOC Serial Config For User 029
 check_socserial_user029() {
 if [ "$TARGET_SOC_SERIAL" == "$user029_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user029_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -4351,11 +3437,11 @@ fi
 # Check Serial Config For User 030
 check_serial_user030() {
 if [ "$TARGET_SERIAL" == "$user030_serial" ]; then
-rm -f /tmp/CryptX/user_serial_unverified
+rm -f /tmp/EncryptX/user_serial_unverified
 user_serial=$user030_serial
 serial_score=1;
 else
-rm -f /tmp/CryptX/user_serial_verified
+rm -f /tmp/EncryptX/user_serial_verified
 user_serial=" - null!";
 serial_score=0;
 fi
@@ -4364,11 +3450,11 @@ fi
 # Check SOC Serial Config For User 030
 check_socserial_user030() {
 if [ "$TARGET_SOC_SERIAL" == "$user030_socserial" ]; then
-rm -f /tmp/CryptX/user_soc_serial_unverified
+rm -f /tmp/EncryptX/user_soc_serial_unverified
 user_socserial=$user030_socserial
 socserial_score=1;
 else
-rm -f /tmp/CryptX/user_soc_serial_verified
+rm -f /tmp/EncryptX/user_soc_serial_verified
 user_socserial=" - null!";
 socserial_score=0;
 fi
@@ -4434,15 +3520,15 @@ ui_print " ";
 sleep 0.2;
 ui_print "------------------------------------------------";
 sleep 0.2;
-ui_print " CryptX Activator [Plus]                        ";
+ui_print " EncryptX Activator [Plus]                      ";
 sleep 0.2;
 ui_print "------------------------------------------------";
 sleep 0.2;
 ui_print " Maintainer: @itsD3XT3R07                       ";
 sleep 0.2;
-ui_print " Variant   : $CryptX_ACTIVATOR_VARIANT          ";
+ui_print " Variant   : $EncryptX_ACTIVATOR_VARIANT        ";
 sleep 0.2;
-ui_print " Version   : $CryptX_ACTIVATOR_VERSION          ";
+ui_print " Version   : $EncryptX_ACTIVATOR_VERSION        ";
 sleep 0.2;
 ui_print " Updated   : On $MOD_DATE At $MOD_TIME          ";
 sleep 0.2;
@@ -4488,11 +3574,11 @@ check_device_type
 sleep 0.2;
 ui_print " ";
 sleep 0.2;
-if [ $CryptXModule_ACTIVATE_CRS = 1 ]; then
+if [ $EncryptXModule_ACTIVATE_CRS = 1 ]; then
 module_setup_crs;
 sleep 3;
 fi
-if [ $CryptXModule_ACTIVATE_VKS = 1 ]; then
+if [ $EncryptXModule_ACTIVATE_VKS = 1 ]; then
 module_setup_vks
 sleep 1;
 fi
@@ -4528,8 +3614,8 @@ ui_print " ";
 sleep 0.2;
 ui_print " - Activator Services Have Been Completed!      ";
 sleep 0.2;
-ui_print " > Check Out Logs At CryptX.log                 ";
-ui_print " > Head To /data/media/0/CryptX/CryptX.log      ";
+ui_print " > Check Out Logs At EncryptX.log               ";
+ui_print " > Head To /data/media/0/EncryptX/EncryptX.log  ";
 sleep 0.2;
 ui_print " ";
 sleep 0.2;
@@ -4540,7 +3626,7 @@ ui_print " ";
 sleep 0.2;
 ui_print " - Make Sure To Join Our Channel For More Info: ";
 sleep 0.2;
-ui_print " > https://t.me/CryptXSecurity                  ";
+ui_print " > https://t.me/EncryptXSecurity                ";
 sleep 0.2;
 ui_print " ";
 sleep 0.2;
@@ -4569,10 +3655,10 @@ sleep 0.2;
 
 
 # -------------------------------------------------------------------
-# Activate & Record CryptX Flashing Logs              [DO NOT FIDDLE]
+# Activate & Record EncryptX Flashing Logs            [DO NOT FIDDLE]
 # -------------------------------------------------------------------
 
-activate_cryptx_logs;
+activate_EncryptX_logs;
 
 # -------------------------------------------------------------------
 
@@ -4587,11 +3673,11 @@ exit 0
 
 
 # -------------------------------------------------------------------
-# Description : CryptX
-# Author      : @
-# Date        : 26 October 2024
+# Description : EncryptX
+# Author      : @lakshkukreja
+# Date        : 14 November 2024
 # Device      : Universal
 # Model       : Universal
 # License     : GPL-3.0-or-later (SPDX)
-# Copyright   : (CC) 2024 CryptX Service(s)
+# Copyright   : (CC) 2024 EncryptX Service(s)
 # -------------------------------------------------------------------
